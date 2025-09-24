@@ -16,10 +16,9 @@ if (!API_KEY) {
 }
 
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
 const generateRequestBody = z.object({
   prompt: z.string().min(1).max(1000),
+  model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash']).optional(),
 });
 
 type GenerateRequest = FastifyRequest<{ Body: z.infer<typeof generateRequestBody> }>;
@@ -33,7 +32,9 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         return reply.status(400).send({ error: 'Invalid request body', details: validation.error.issues });
       }
 
-      const { prompt } = validation.data;
+      const { prompt, model: selectedModel } = validation.data;
+      const modelName = selectedModel || 'gemini-2.5-flash';
+      const model = genAI.getGenerativeModel({ model: modelName });
 
       // 1. Generate OpenSCAD code from Gemini
       const fullPrompt = `
