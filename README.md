@@ -4,11 +4,11 @@
 
 ## ✨ Features
 
--   **AI-Powered Code Generation:** Describe your 3D model in plain English and watch the OpenSCAD code get generated in real-time.
+-   **AI-Powered Code Generation:** Describe your 3D model in plain English and watch the OpenSCAD code get generated in real-time, with the option to select between Gemini 2.5 Flash and Pro models.
 -   **Instant 3D Preview:** A live, interactive 3D viewer powered by Three.js renders your model as you make changes.
--   **STL Export:** Download your generated models as `.stl` files, ready for any 3D printer or slicer software.
+-   **STL Export:** Download your generated models as `.stl` files with automatically generated, descriptive filenames, ready for any 3D printer or slicer software.
 -   **Modern Tech Stack:** Built with React, TypeScript, Node.js (Fastify), and Vite for a fast and reliable developer experience.
--   **Dockerized:** Get up and running in seconds with a single `docker compose` command.
+-   **Dockerized:** Get up and running in seconds with a single `docker compose` command, including a backend health check.
 
 ## 🚀 Getting Started
 

@@ -27,8 +27,8 @@
 
 ## 🎨 UI/UX Enhancements
 - [ ] **UI/UX Overhaul**: Improve layout, theming, and visual appeal. Implement a responsive design for mobile and desktop.
-- [ ] **About Page**: Create a simple, static "About" page for the OpenPAD application.
-- [ ] **Display Generation Info**: Show the raw response or reasoning from the Gemini model to help users iteratively improve their prompts.
+- [x] **About Page**: Create a simple, static "About" page for the OpenPAD application.
+- [x] **Display Generation Info**: Show the raw response or reasoning from the Gemini model to help users iteratively improve their prompts.
 - [ ] **Code Editor with Syntax Highlighting**
   - Integrate Monaco Editor for OpenSCAD
   - Syntax highlighting for OpenSCAD language
@@ -46,11 +46,13 @@
 - [ ] **Polished Design System**
   - Professional color scheme and typography
   - Consistent spacing and layouts
-  - Loading animations and micro-interactions
-  - Toast notifications for user feedback
-  - Dark/light theme toggle
+  - [x] Loading animations and micro-interactions (Implemented pulsing button).
+  - [x] Toast notifications for user feedback.
+  - [ ] Dark/light theme toggle
 
 ## 🤖 AI & Prompting
+- [x] **Configurable AI Models**: Allow users to select between available Gemini models (e.g., Flash, Pro).
+- [x] **On-demand Filename Generation**: Generate a descriptive, file-safe filename for downloads using a separate AI call.
 - [ ] **Advanced Prompt Engineering**: Systematically improve the master prompt sent to the AI to enhance the quality and complexity of the generated OpenSCAD code.
 - [ ] **Prompt Management**: Allow users to save, load, and manage a history of their prompts.
 
@@ -87,7 +89,7 @@
 
 - [ ] **User Experience**
   - Onboarding tutorial for new users
-  - Keyboard shortcuts for power users
+  - [x] Keyboard shortcuts for power users (Ctrl+Enter to generate).
   - Project save/load functionality
   - Version history for generated models
   - Collaborative features (sharing models)
@@ -108,7 +110,7 @@
   - Anonymous usage analytics opt-in
 
 ## 🧪 Testing & Quality
-- [ ] **Comprehensive Test Coverage**
+- [x] **Comprehensive Test Coverage**
   - Frontend Unit Tests (Vitest): Write unit and component tests for the React components.
   - Backend Unit Tests (Jest): Write unit and integration tests for the Fastify API endpoints.
   - Visual regression testing
@@ -147,7 +149,8 @@
   - Contributing guidelines
   - Deployment guides
 
-- [ ] **Build & Deploy Enhancements**
+- [x] **Build & Deploy Enhancements**
+  - [x] Add Health Check Endpoint to the Backend.
   - Automated testing pipelines
   - Multi-stage Docker builds
   - Environment-specific configurations
