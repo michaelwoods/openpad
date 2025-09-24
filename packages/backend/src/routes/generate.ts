@@ -50,8 +50,8 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       `;
 
       const result = await model.generateContent(fullPrompt);
-      const response = await result.response;
-      const code = response.text();
+      const generationResult = await result.response;
+      const code = generationResult.text();
 
       // 2. Convert generated code to STL
       tempDir = await mkdtemp(join(tmpdir(), 'openpad-'));
@@ -77,8 +77,13 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       const stlData = await readFile(stlPath);
       const stlBase64 = stlData.toString('base64');
 
-      // 3. Send both code and STL back to the client
-      return reply.send({ code, stl: stlBase64 });
+      // 3. Send code, STL, and generation info back to the client
+      const generationInfo = {
+        finishReason: generationResult.candidates?.[0]?.finishReason,
+        safetyRatings: generationResult.candidates?.[0]?.safetyRatings,
+      };
+
+      return reply.send({ code, stl: stlBase64, generationInfo });
 
     } catch (error) {
       fastify.log.error(error, 'Error in the generate process');

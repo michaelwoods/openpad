@@ -8,6 +8,7 @@ function App() {
   const [prompt, setPrompt] = useState('a 20mm cube with a 5mm hole in the center');
   const [generatedCode, setGeneratedCode] = useState('// OpenSCAD code will appear here');
   const [stlData, setStlData] = useState<string | null>(null);
+  const [generationInfo, setGenerationInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
 
@@ -15,6 +16,7 @@ function App() {
     if (isLoading) return;
     setIsLoading(true);
     setStlData(null);
+    setGenerationInfo(null);
 
     const promise = fetch('/api/generate', {
       method: 'POST',
@@ -36,6 +38,7 @@ function App() {
       success: (data) => {
         setGeneratedCode(data.code);
         setStlData(data.stl);
+        setGenerationInfo(data.generationInfo);
         return 'Successfully generated!';
       },
       error: (err) => {
@@ -85,6 +88,14 @@ function App() {
             <pre>
               <code>{generatedCode}</code>
             </pre>
+            {generationInfo && (
+              <details style={{ marginTop: '1rem' }}>
+                <summary>Show Generation Info</summary>
+                <pre>
+                  <code>{JSON.stringify(generationInfo, null, 2)}</code>
+                </pre>
+              </details>
+            )}
           </section>
           <section className="viewer-pane">
             <Viewer stl={stlData} />
