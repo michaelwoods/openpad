@@ -112,7 +112,7 @@
 ## 🧪 Testing & Quality
 - [x] **Comprehensive Test Coverage**
   - Frontend Unit Tests (Vitest): Write unit and component tests for the React components.
-  - Backend Unit Tests (Jest): Write unit and integration tests for the Fastify API endpoints.
+- [x] **Backend Unit Tests (Jest)**: Write unit and integration tests for the Fastify API endpoints. (Fixed filename.test.ts)
   - Visual regression testing
   - Cross-browser compatibility testing
   - Performance benchmarking
