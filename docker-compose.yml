@@ -1,0 +1,29 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./packages/frontend:/app/packages/frontend
+      - pnpm_store:/root/.local/share/pnpm/store
+    profiles:
+      - dev
+
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./packages/backend:/app/packages/backend
+      - pnpm_store:/root/.local/share/pnpm/store
+    profiles:
+      - dev
+    env_file:
+      - .env
+
+volumes:
+  pnpm_store: {}

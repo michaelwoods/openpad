@@ -1,0 +1,15 @@
+{
+  "name": "openpad",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --stream dev",
+    "build": "pnpm --parallel build",
+    "lint": "pnpm --parallel lint",
+    "test": "pnpm --parallel test"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
+  }
+}
