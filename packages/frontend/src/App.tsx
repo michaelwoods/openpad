@@ -2,46 +2,44 @@ import { useState } from 'react';
 import './App.css';
 import Viewer from './Viewer';
 import About from './About';
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
   const [prompt, setPrompt] = useState('a 20mm cube with a 5mm hole in the center');
   const [generatedCode, setGeneratedCode] = useState('// OpenSCAD code will appear here');
   const [stlData, setStlData] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showAbout, setShowAbout] = useState(false);
 
   const handleGenerate = async () => {
-    if (isLoading) return;
-    setIsLoading(true);
-    setError(null);
     setStlData(null);
 
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
+    const promise = fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
+    }).then(async (response) => {
       const data = await response.json();
-
       if (!response.ok) {
         const errorDetails = data.details || `HTTP error! status: ${response.status}`;
         throw new Error(errorDetails);
       }
+      return data;
+    });
 
-      setGeneratedCode(data.code);
-      setStlData(data.stl);
-
-    } catch (e: any) {
-      setError(e.message || 'An unknown error occurred.');
-      setGeneratedCode('// Error generating code.');
-    } finally {
-      setIsLoading(false);
-    }
+    toast.promise(promise, {
+      loading: 'Generating model...',
+      success: (data) => {
+        setGeneratedCode(data.code);
+        setStlData(data.stl);
+        return 'Successfully generated!';
+      },
+      error: (err) => {
+        setGeneratedCode(`// Error generating code.\n\n${err.message}`);
+        return `Error: ${err.message}`;
+      },
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -53,6 +51,7 @@ function App() {
 
   return (
     <div className="app">
+      <Toaster position="bottom-center" />
       <header>
         <h1>OpenPAD (Open Prompt Aided Design)</h1>
         <button onClick={() => setShowAbout(true)}>About</button>
@@ -69,10 +68,9 @@ function App() {
               onKeyDown={handleKeyDown}
               placeholder="e.g., a 20mm cube with a 5mm hole in the center"
             />
-            <button onClick={handleGenerate} disabled={isLoading}>
-              {isLoading ? 'Generating...' : 'Generate'}
+            <button onClick={handleGenerate}>
+              Generate
             </button>
-            {error && <p style={{ color: 'red' }}>Error: {error}</p>}
 
             <h2 style={{ marginTop: '2rem' }}>2. Generated OpenSCAD Code</h2>
             <pre>
