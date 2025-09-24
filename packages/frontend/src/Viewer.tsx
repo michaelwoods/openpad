@@ -1,25 +1,27 @@
-import { Suspense, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Center, useGLTF } from '@react-three/drei';
+import { Suspense, useEffect } from 'react';
+import { Canvas, useLoader } from '@react-three/fiber';
+import { OrbitControls, Center, Html } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
-import * as THREE from 'three';
+import toast from 'react-hot-toast';
 
-interface ModelProps {
-  stlBase64: string;
+// Fallback component that shows a toast only if loading is slow
+function SlowLoadFallback() {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      toast('Rendering is taking a while...');
+    }, 1000); // 1 second delay
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return <Html center>Loading Preview...</Html>;
 }
 
-function Model({ stlBase64 }: ModelProps) {
-  const geometry = useMemo(() => {
-    if (!stlBase64) return null;
-    const decoded = atob(stlBase64);
-    const loader = new STLLoader();
-    return loader.parse(decoded);
-  }, [stlBase64]);
-
-  if (!geometry) return null;
-
+// Model component now uses useLoader for async parsing
+function Model({ url }: { url: string }) {
+  const geom = useLoader(STLLoader, url);
   return (
-    <mesh geometry={geometry}>
+    <mesh geometry={geom}>
       <meshStandardMaterial color="#61dafb" />
     </mesh>
   );
@@ -30,14 +32,17 @@ interface ViewerProps {
 }
 
 export default function Viewer({ stl }: ViewerProps) {
+  // Create a data URL from the base64 STL string
+  const stlDataUrl = stl ? `data:application/octet-stream;base64,${stl}` : null;
+
   return (
     <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [2, 2, 2], fov: 50 }}>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-      <Suspense fallback={null}>
+      <Suspense fallback={<SlowLoadFallback />}>
         <Center>
-          {stl && <Model stlBase64={stl} />}
+          {stlDataUrl && <Model url={stlDataUrl} />}
         </Center>
       </Suspense>
       <OrbitControls />
