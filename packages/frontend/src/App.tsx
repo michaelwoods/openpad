@@ -44,6 +44,13 @@ function App() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault(); // prevent newline in textarea
+      handleGenerate();
+    }
+  };
+
   return (
     <div className="app">
       <header>
@@ -59,6 +66,7 @@ function App() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="e.g., a 20mm cube with a 5mm hole in the center"
             />
             <button onClick={handleGenerate} disabled={isLoading}>
