@@ -8,9 +8,12 @@ function App() {
   const [prompt, setPrompt] = useState('a 20mm cube with a 5mm hole in the center');
   const [generatedCode, setGeneratedCode] = useState('// OpenSCAD code will appear here');
   const [stlData, setStlData] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
 
   const handleGenerate = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     setStlData(null);
 
     const promise = fetch('/api/generate', {
@@ -39,6 +42,8 @@ function App() {
         setGeneratedCode(`// Error generating code.\n\n${err.message}`);
         return `Error: ${err.message}`;
       },
+    }).finally(() => {
+      setIsLoading(false);
     });
   };
 
@@ -68,8 +73,12 @@ function App() {
               onKeyDown={handleKeyDown}
               placeholder="e.g., a 20mm cube with a 5mm hole in the center"
             />
-            <button onClick={handleGenerate}>
-              Generate
+            <button 
+              onClick={handleGenerate} 
+              disabled={isLoading}
+              className={isLoading ? 'loading-pulse' : ''}
+            >
+              {isLoading ? 'Generating...' : 'Generate'}
             </button>
 
             <h2 style={{ marginTop: '2rem' }}>2. Generated OpenSCAD Code</h2>
