@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import Viewer from './Viewer';
+import About from './About';
 
 function App() {
   const [prompt, setPrompt] = useState('a 20mm cube with a 5mm hole in the center');
@@ -8,6 +9,7 @@ function App() {
   const [stlData, setStlData] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAbout, setShowAbout] = useState(false);
 
   const handleGenerate = async () => {
     if (isLoading) return;
@@ -46,29 +48,34 @@ function App() {
     <div className="app">
       <header>
         <h1>OpenPAD (Open Prompt Aided Design)</h1>
+        <button onClick={() => setShowAbout(true)}>About</button>
       </header>
-      <main className="main-content">
-        <section className="editor-pane">
-          <h2>1. Describe Your Model</h2>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., a 20mm cube with a 5mm hole in the center"
-          />
-          <button onClick={handleGenerate} disabled={isLoading}>
-            {isLoading ? 'Generating...' : 'Generate'}
-          </button>
-          {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+      {showAbout ? (
+        <About onClose={() => setShowAbout(false)} />
+      ) : (
+        <main className="main-content">
+          <section className="editor-pane">
+            <h2>1. Describe Your Model</h2>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="e.g., a 20mm cube with a 5mm hole in the center"
+            />
+            <button onClick={handleGenerate} disabled={isLoading}>
+              {isLoading ? 'Generating...' : 'Generate'}
+            </button>
+            {error && <p style={{ color: 'red' }}>Error: {error}</p>}
 
-          <h2 style={{ marginTop: '2rem' }}>2. Generated OpenSCAD Code</h2>
-          <pre>
-            <code>{generatedCode}</code>
-          </pre>
-        </section>
-        <section className="viewer-pane">
-          <Viewer stl={stlData} />
-        </section>
-      </main>
+            <h2 style={{ marginTop: '2rem' }}>2. Generated OpenSCAD Code</h2>
+            <pre>
+              <code>{generatedCode}</code>
+            </pre>
+          </section>
+          <section className="viewer-pane">
+            <Viewer stl={stlData} />
+          </section>
+        </main>
+      )}
     </div>
   );
 }
