@@ -9,16 +9,10 @@ import { promisify } from 'util';
 
 const execFileAsync = promisify(execFile);
 
-const API_KEY = process.env.GEMINI_API_KEY;
-
-if (!API_KEY) {
-  throw new Error('GEMINI_API_KEY is not set');
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
+const getGenerativeAI = (apiKey: string) => new GoogleGenerativeAI(apiKey);
 const generateRequestBody = z.object({
   prompt: z.string().min(1).max(1000),
-  model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash']).optional(),
+  model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']).optional(),
 });
 
 type GenerateRequest = FastifyRequest<{ Body: z.infer<typeof generateRequestBody> }>;
@@ -34,6 +28,11 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
 
       const { prompt, model: selectedModel } = validation.data;
       const modelName = selectedModel || 'gemini-2.5-flash';
+      const API_KEY = process.env.GEMINI_API_KEY;
+      if (!API_KEY) {
+        throw new Error('GEMINI_API_KEY is not set');
+      }
+      const genAI = getGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: modelName });
 
       // 1. Generate OpenSCAD code from Gemini

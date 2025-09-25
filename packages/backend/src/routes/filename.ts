@@ -2,15 +2,7 @@ import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } f
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 
-const API_KEY = process.env.GEMINI_API_KEY;
-
-if (!API_KEY) {
-  throw new Error('GEMINI_API_KEY is not set');
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
-// Always use the fastest model for this simple task
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+const getGenerativeAI = (apiKey: string) => new GoogleGenerativeAI(apiKey);
 
 const filenameRequestBody = z.object({
   prompt: z.string().min(1).max(1000),
@@ -27,6 +19,13 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       }
 
       const { prompt } = validation.data;
+
+      const API_KEY = process.env.GEMINI_API_KEY;
+      if (!API_KEY) {
+        throw new Error('GEMINI_API_KEY is not set');
+      }
+      const genAI = getGenerativeAI(API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
       const fullPrompt = `
         Based on the following user request, create a short, descriptive, file-safe name for an STL file.

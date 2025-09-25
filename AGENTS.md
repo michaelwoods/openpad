@@ -81,3 +81,11 @@ The Minimum Viable Product (MVP) is functional. The following core features have
 ## See Also
 - [README.md](README.md) for human contributors
 - [TODO.md](TODO.md) for future/lower-priority agent tasks
+
+## Testing Lessons Learned
+
+*   **`jsdom` Limitations:** The `jsdom` environment used for testing has limitations. It does not implement all browser features, such as `window.matchMedia` and navigation. When encountering strange errors in tests, consider if they might be caused by `jsdom` limitations.
+*   **Mocking Browser Features:** To work around `jsdom` limitations, you may need to mock browser features. For example, `window.matchMedia` can be mocked to prevent errors in libraries that use it.
+*   **Over-mocking:** Be careful not to over-mock. Mocking fundamental functions like `document.createElement` can lead to unexpected errors. It's often better to use the real functions and spy on them instead.
+*   **Race Conditions:** Asynchronous operations in tests can lead to race conditions. Use `async/await` and `waitFor` to ensure that operations happen in the correct order.
+*   **Circular Dependencies in Mocks:** Be careful not to create circular dependencies in your mocks. For example, calling `document.createElement` inside a mock for `document.createElement` will cause a stack overflow.

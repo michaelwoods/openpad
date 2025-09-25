@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import supertest from 'supertest';
+const mockGetGenerativeModel = jest.fn();
 const mockGenerateContent = jest.fn();
 const mockExecFile = jest.fn();
 const mockMkdtemp = jest.fn();
@@ -14,7 +15,7 @@ describe('Generate Route', () => {
   beforeAll(() => {
     jest.doMock('@google/generative-ai', () => ({
       GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
-        getGenerativeModel: jest.fn().mockReturnValue({
+        getGenerativeModel: mockGetGenerativeModel.mockReturnValue({
           generateContent: mockGenerateContent,
         }),
       })),
@@ -44,6 +45,7 @@ describe('Generate Route', () => {
     await fastify.ready();
 
     // Reset mocks before each test
+    mockGetGenerativeModel.mockClear();
     mockGenerateContent.mockClear();
     mockExecFile.mockClear();
     mockMkdtemp.mockClear();
@@ -144,6 +146,27 @@ describe('Generate Route', () => {
     expect(mockExecFile).not.toHaveBeenCalled();
   });
 
+  it('should use the specified model (gemini-2.5-flash-lite) if provided', async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: {
+        text: () => 'sphere();',
+        candidates: [{ finishReason: 'STOP', safetyRatings: [] }],
+      },
+    });
+    mockExecFile.mockImplementation((command, args, callback) => {
+      callback(null, { stdout: '', stderr: '' });
+    });
+
+    await supertest(fastify.server)
+      .post('/generate')
+      .send({ prompt: 'create a sphere', model: 'gemini-2.5-flash-lite' })
+      .expect(200);
+
+    expect(mockGetGenerativeModel).toHaveBeenCalledWith({
+      model: 'gemini-2.5-flash-lite',
+    });
+  });
+
   it('should return 422 if OpenSCAD execution fails', async () => {
     mockGenerateContent.mockResolvedValueOnce({
       response: {
@@ -175,18 +198,5 @@ describe('Generate Route', () => {
     expect(mockRm).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw an error if GEMINI_API_KEY is not set at module load time', () => {
-    // This test needs to be isolated to ensure the module is loaded without the API key
-    const originalGeminiApiKey = process.env.GEMINI_API_KEY;
-    delete process.env.GEMINI_API_KEY;
-    jest.resetModules(); // Clear module cache
 
-    expect(() => {
-      jest.isolateModules(() => {
-        require('./generate');
-      });
-    }).toThrow('GEMINI_API_KEY is not set');
-
-    process.env.GEMINI_API_KEY = originalGeminiApiKey;
-  });
 });
