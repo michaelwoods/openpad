@@ -25,7 +25,7 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         throw new Error('GEMINI_API_KEY is not set');
       }
       const genAI = getGenerativeAI(API_KEY);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
       const fullPrompt = `
         Based on the following user request, create a short, descriptive, file-safe name for an STL file.

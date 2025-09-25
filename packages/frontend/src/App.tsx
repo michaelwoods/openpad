@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import About from './About';
 import toast, { Toaster } from 'react-hot-toast';
@@ -94,6 +94,12 @@ function App() {
     });
   };
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <div className="app">
       <Toaster position="bottom-center" />
@@ -114,7 +120,7 @@ function App() {
             handleCopyCode={handleCopyCode}
             generationInfo={generationInfo}
           />
-          <Preview stlData={stlData} handleDownloadStl={handleDownloadStl} />
+          {isMounted && <Preview stlData={stlData} handleDownloadStl={handleDownloadStl} />}
         </main>
       )}
     </div>

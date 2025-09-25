@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 vi.mock('@react-three/fiber', () => ({
-  Canvas: vi.fn(({ children }) => {
+  Canvas: vi.fn(() => {
     const div = document.createElement('div');
     div.setAttribute('data-testid', 'canvas-mock');
     return div;

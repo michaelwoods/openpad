@@ -1,7 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls, Center, Html } from '@react-three/drei';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+import { STLLoader } from 'three-stdlib';
 import toast from 'react-hot-toast';
 
 // Fallback component that shows a toast only if loading is slow
@@ -36,7 +36,7 @@ export default function Viewer({ stl }: ViewerProps) {
   const stlDataUrl = stl ? `data:application/octet-stream;base64,${stl}` : null;
 
   return (
-    <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [2, 2, 2], fov: 50 }}>
+    <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [5, 5, 5], fov: 50 }}>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
