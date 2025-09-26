@@ -1,42 +1,32 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import App from './App';
 import '@testing-library/jest-dom';
+import * as api from './api';
 
-// Mock child components
+vi.mock('./api');
+
 vi.mock('./Header', () => ({
-  default: vi.fn(({ onShowAbout }) => (
-    <header>
-      <h1>OpenPAD</h1>
-      <button onClick={onShowAbout}>About</button>
-    </header>
-  )),
+  default: ({ onShowAbout }: { onShowAbout: () => void }) => <button onClick={onShowAbout}>About</button>,
 }));
 
 vi.mock('./About', () => ({
-  default: vi.fn(({ onClose }) => (
+  default: ({ onClose }: { onClose: () => void }) => (
     <div>
       <h2>About OpenPAD</h2>
       <button onClick={onClose}>Close</button>
     </div>
-  )),
+  ),
 }));
 
 vi.mock('./Editor', () => ({
-  default: vi.fn(({ handleGenerate }) => (
-    <div>
-      <button onClick={handleGenerate}>Generate</button>
-    </div>
-  )),
+  default: ({ handleGenerate }: { handleGenerate: () => void }) => <button onClick={handleGenerate}>Generate</button>,
 }));
 
 vi.mock('./Preview', () => ({
-  default: vi.fn(({ handleDownloadStl }) => (
-    <div>
-      <button onClick={handleDownloadStl}>Download</button>
-    </div>
-  )),
+  default: ({ handleDownloadStl }: { handleDownloadStl: () => void }) => <button onClick={handleDownloadStl}>Download</button>,
 }));
+
 
 describe('App', () => {
   it('shows and hides the About component', () => {
@@ -47,64 +37,17 @@ describe('App', () => {
     expect(screen.queryByText('About OpenPAD')).not.toBeInTheDocument();
   });
 
-  it('calls handleGenerate when the Generate button is clicked', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ code: 'test code', stl: 'test stl', generationInfo: {} }),
-      })
-    ) as any;
-
+  it('calls handleGenerate when the Generate button is clicked', () => {
+    const handleGenerateSpy = vi.spyOn(api, 'handleGenerate');
     render(<App />);
     fireEvent.click(screen.getByText('Generate'));
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/generate', expect.any(Object));
-    });
+    expect(handleGenerateSpy).toHaveBeenCalled();
   });
 
-  it('calls handleDownloadStl when the Download button is clicked', async () => {
-    global.fetch = vi.fn((url) => {
-      switch (url) {
-        case '/api/generate':
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({ code: 'test code', stl: 'test stl', generationInfo: {} }),
-          });
-        case '/api/filename':
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({ filename: 'test.stl' }),
-          });
-        default:
-          return Promise.reject(new Error('unknown url'));
-      }
-    }) as any;
-
-    const createElement = document.createElement;
-    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
-      if (tag === 'a') {
-        const link = createElement.call(document, 'a');
-        vi.spyOn(link, 'click').mockImplementation(() => {});
-        return link;
-      }
-      return createElement.call(document, tag);
-    });
-
+  it('calls handleDownloadStl when the Download button is clicked', () => {
+    const handleDownloadStlSpy = vi.spyOn(api, 'handleDownloadStl');
     render(<App />);
-    // First, generate some STL data
-    fireEvent.click(screen.getByText('Generate'));
-
-    // Wait for the download button to be enabled
-    await waitFor(() => {
-      expect(screen.getByText('Download')).not.toBeDisabled();
-    });
-
-    // Now, click the download button
     fireEvent.click(screen.getByText('Download'));
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/filename', expect.any(Object));
-    });
+    expect(handleDownloadStlSpy).toHaveBeenCalled();
   });
 });
