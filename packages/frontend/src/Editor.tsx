@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface EditorProps {
   prompt: string;
   setPrompt: (prompt: string) => void;
-  handleGenerate: () => void;
+  handleGenerate: (editedCode?: string) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   isLoading: boolean;
   selectedModel: string;
@@ -25,6 +25,16 @@ const Editor: React.FC<EditorProps> = ({
   handleCopyCode,
   generationInfo,
 }) => {
+  const [editedCode, setEditedCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    setEditedCode(null);
+  }, [generatedCode]);
+
+  const onCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedCode(e.target.value);
+  };
+
   return (
     <section className="editor-pane">
       <h2>1. Describe Your Model</h2>
@@ -36,7 +46,7 @@ const Editor: React.FC<EditorProps> = ({
       />
       <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
         <button 
-          onClick={handleGenerate} 
+          onClick={() => handleGenerate()} 
           disabled={isLoading}
           className={isLoading ? 'loading-pulse' : ''}
         >
@@ -51,11 +61,18 @@ const Editor: React.FC<EditorProps> = ({
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2rem' }}>
         <h2>2. Generated OpenSCAD Code</h2>
-        <button onClick={handleCopyCode} title="Copy code" style={{ marginTop: 0 }}>Copy</button>
+        <div>
+          {editedCode !== null && (
+            <button onClick={() => handleGenerate(editedCode)} style={{ marginTop: 0, marginRight: '1rem' }}>Regenerate</button>
+          )}
+          <button onClick={handleCopyCode} title="Copy code" style={{ marginTop: 0 }}>Copy</button>
+        </div>
       </div>
-      <pre>
-        <code>{generatedCode}</code>
-      </pre>
+      <textarea
+        value={editedCode ?? generatedCode}
+        onChange={onCodeChange}
+        className="code-editor"
+      />
       {generationInfo && (
         <details style={{ marginTop: '1rem' }}>
           <summary>Show Generation Info</summary>

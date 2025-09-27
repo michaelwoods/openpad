@@ -49,9 +49,18 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         **User Request:** "${prompt}"
       `;
 
+      fastify.log.info({ reqId: request.id }, `Generating code for prompt: ${prompt}`);
+
       const result = await model.generateContent(fullPrompt);
       const generationResult = await result.response;
-      const code = generationResult.text();
+      let code = generationResult.text();
+
+      const match = code.match(/```openscad\n([\s\S]*?)```/);
+      if (match) {
+        code = match[1];
+      }
+
+      fastify.log.info({ reqId: request.id }, `Generated code: ${code}`);
 
       // 2. Convert generated code to STL
       tempDir = await mkdtemp(join(tmpdir(), 'openpad-'));

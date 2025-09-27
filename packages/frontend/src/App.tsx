@@ -16,14 +16,15 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
 
-  const onGenerate = () => {
+  const onGenerate = (editedCode?: string) => {
     handleGenerate(
       prompt,
       selectedModel,
       setIsLoading,
       setStlData,
       setGeneratedCode,
-      setGenerationInfo
+      setGenerationInfo,
+      editedCode
     );
   };
 
