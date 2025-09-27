@@ -6,6 +6,7 @@ import { writeFile, readFile, mkdtemp, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
+import { basePrompt, modularPrompt } from '../prompts';
 
 const execFileAsync = promisify(execFile);
 
@@ -13,6 +14,7 @@ const getGenerativeAI = (apiKey: string) => new GoogleGenerativeAI(apiKey);
 const generateRequestBody = z.object({
   prompt: z.string().min(1).max(1000),
   model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']).optional(),
+  style: z.enum(['Default', 'Modular']).optional(),
 });
 
 type GenerateRequest = FastifyRequest<{ Body: z.infer<typeof generateRequestBody> }>;
@@ -26,7 +28,7 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         return reply.status(400).send({ error: 'Invalid request body', details: validation.error.issues });
       }
 
-      const { prompt, model: selectedModel } = validation.data;
+      const { prompt, model: selectedModel, style } = validation.data;
       const modelName = selectedModel || 'gemini-2.5-flash';
       const API_KEY = process.env.GEMINI_API_KEY;
       if (!API_KEY) {
@@ -35,17 +37,11 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       const genAI = getGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: modelName });
 
-      // 1. Generate OpenSCAD code from Gemini
-      const fullPrompt = `
-        You are an expert in OpenSCAD, a script-only 3D modeling software.
-        Your task is to generate clean, correct, and executable OpenSCAD code based on the user's request.
-        
-        **IMPORTANT RULES:**
-        1.  **ONLY output the raw OpenSCAD code.**
-        2.  Do NOT include any explanations, comments, or markdown formatting (like \'\'\'openscad).
-        3.  The code should be complete and ready to execute.
-        4.  Use common OpenSCAD modules and functions.
-
+      let fullPrompt = basePrompt;
+      if (style === 'Modular') {
+        fullPrompt += modularPrompt;
+      }
+      fullPrompt += `
         **User Request:** "${prompt}"
       `;
 
@@ -75,7 +71,7 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       } catch (openscadError: any) {
         fastify.log.error(openscadError, 'OpenSCAD execution failed');
         // Send a specific error response if OpenSCAD fails (e.g., due to bad code)
-        return reply.status(422).send({ 
+        return reply.status(422).send({
           error: 'OpenSCAD failed to compile the generated code.',
           code, // Send the faulty code back for debugging
           stl: null,

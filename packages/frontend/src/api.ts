@@ -7,7 +7,8 @@ export const handleGenerate = async (
   setStlData: (stlData: string | null) => void,
   setGeneratedCode: (generatedCode: string) => void,
   setGenerationInfo: (generationInfo: any) => void,
-  editedCode?: string
+  editedCode?: string,
+  style?: string
 ) => {
   setIsLoading(true);
   setStlData(null);
@@ -25,7 +26,7 @@ export const handleGenerate = async (
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt: chainOfThought, model: selectedModel }),
+      body: JSON.stringify({ prompt: chainOfThought, model: selectedModel, style }),
     }).then(async (response) => {
       const data = await response.json();
       if (!response.ok) {

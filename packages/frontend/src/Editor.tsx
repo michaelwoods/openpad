@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 interface EditorProps {
   prompt: string;
   setPrompt: (prompt: string) => void;
-  handleGenerate: (editedCode?: string) => void;
+  handleGenerate: (editedCode?: string, style?: string) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   isLoading: boolean;
   selectedModel: string;
@@ -26,6 +26,7 @@ const Editor: React.FC<EditorProps> = ({
   generationInfo,
 }) => {
   const [editedCode, setEditedCode] = useState<string | null>(null);
+  const [codeStyle, setCodeStyle] = useState('Default');
 
   useEffect(() => {
     setEditedCode(null);
@@ -46,7 +47,7 @@ const Editor: React.FC<EditorProps> = ({
       />
       <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
         <button 
-          onClick={() => handleGenerate()} 
+          onClick={() => handleGenerate(undefined, codeStyle)} 
           disabled={isLoading}
           className={isLoading ? 'loading-pulse' : ''}
         >
@@ -57,6 +58,13 @@ const Editor: React.FC<EditorProps> = ({
           <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
           <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
         </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label>Style:</label>
+          <select value={codeStyle} onChange={(e) => setCodeStyle(e.target.value)} disabled={isLoading}>
+            <option value="Default">Default</option>
+            <option value="Modular">Modular</option>
+          </select>
+        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2rem' }}>

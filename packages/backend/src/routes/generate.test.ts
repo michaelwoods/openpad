@@ -1,4 +1,5 @@
 import { build } from '../../test/helper';
+import { basePrompt, modularPrompt } from '../../src/prompts';
 
 jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
@@ -12,28 +13,12 @@ jest.mock('@google/generative-ai', () => ({
   })),
 }));
 
-test('POST /api/generate should return OpenSCAD code', async () => {
+test('POST /api/generate should use the default prompt', async () => {
   const app = await build();
-
-  const response = await app.inject({
-    method: 'POST',
-    url: '/api/generate',
-    payload: {
-      prompt: 'a 20mm cube',
-    },
-  });
-
-  expect(response.statusCode).toBe(200);
-  expect(response.json()).toHaveProperty('code');
-});
-
-test('POST /api/generate should handle markdown code blocks', async () => {
-  const app = await build();
-
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const mockGenerate = jest.fn(() => Promise.resolve({
     response: {
-      text: () => '```openscad\n$fn = 50;\ncube(10);\n```',
+      text: () => 'cube(10);',
     },
   }));
   (GoogleGenerativeAI as jest.Mock).mockImplementation(() => ({
@@ -42,7 +27,7 @@ test('POST /api/generate should handle markdown code blocks', async () => {
     }),
   }));
 
-  const response = await app.inject({
+  await app.inject({
     method: 'POST',
     url: '/api/generate',
     payload: {
@@ -50,6 +35,33 @@ test('POST /api/generate should handle markdown code blocks', async () => {
     },
   });
 
-  expect(response.statusCode).toBe(200);
-  expect(response.json().code).toBe('$fn = 50;\ncube(10);\n');
+  const expectedPrompt = `${basePrompt}\n        **User Request:** "a 20mm cube"\n      `;
+  expect(mockGenerate).toHaveBeenCalledWith(expect.stringContaining(expectedPrompt));
+});
+
+test('POST /api/generate should use the modular prompt', async () => {
+  const app = await build();
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const mockGenerate = jest.fn(() => Promise.resolve({
+    response: {
+      text: () => 'cube(10);',
+    },
+  }));
+  (GoogleGenerativeAI as jest.Mock).mockImplementation(() => ({
+    getGenerativeModel: () => ({
+      generateContent: mockGenerate,
+    }),
+  }));
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/generate',
+    payload: {
+      prompt: 'a 20mm cube',
+      style: 'Modular',
+    },
+  });
+
+  const expectedPrompt = `${basePrompt}${modularPrompt}\n        **User Request:** "a 20mm cube"\n      `;
+  expect(mockGenerate).toHaveBeenCalledWith(expect.stringContaining(expectedPrompt));
 });

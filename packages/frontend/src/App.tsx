@@ -16,7 +16,7 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
 
-  const onGenerate = (editedCode?: string) => {
+  const onGenerate = (editedCode?: string, style?: string) => {
     handleGenerate(
       prompt,
       selectedModel,
@@ -24,7 +24,8 @@ function App() {
       setStlData,
       setGeneratedCode,
       setGenerationInfo,
-      editedCode
+      editedCode,
+      style
     );
   };
 
