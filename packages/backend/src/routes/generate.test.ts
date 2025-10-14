@@ -1,6 +1,8 @@
 import { build } from '../../test/helper';
 import { basePrompt, modularPrompt } from '../../src/prompts';
 
+process.env.GEMINI_API_KEY = 'test-key';
+
 jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: jest.fn(() => ({

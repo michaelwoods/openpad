@@ -1,53 +1,83 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Editor from './Editor';
+import { useStore } from './store';
+import * as api from './api';
 import '@testing-library/jest-dom';
 
 describe('Editor', () => {
-  const mockProps = {
-    prompt: 'a 20mm cube',
-    setPrompt: vi.fn(),
-    handleGenerate: vi.fn(),
-    handleKeyDown: vi.fn(),
-    isLoading: false,
-    selectedModel: 'gemini-2.5-flash',
-    setSelectedModel: vi.fn(),
-    generatedCode: 'cube(20);',
-    handleCopyCode: vi.fn(),
-    generationInfo: { model: 'gemini-2.5-flash' },
-  };
-
-  it('renders the prompt textarea', () => {
-    render(<Editor {...mockProps} />);
-    expect(screen.getByPlaceholderText('e.g., a 20mm cube with a 5mm hole in the center')).toBeInTheDocument();
+  beforeEach(() => {
+    useStore.setState({
+      isLoading: false,
+      prompt: '',
+      selectedModel: 'gemini-2.5-flash',
+      codeStyle: 'Default',
+      generatedCode: 'cube(10);',
+    });
+    vi.clearAllMocks();
   });
 
-  it('calls setPrompt on textarea change', () => {
-    render(<Editor {...mockProps} />);
-    const textarea = screen.getByRole('textbox');
-    fireEvent.change(textarea, { target: { value: 'a 10mm sphere' } });
-    expect(mockProps.setPrompt).toHaveBeenCalledWith('a 10mm sphere');
+  it('renders the editor component', () => {
+    render(<Editor />);
+    expect(screen.getByText('1. Describe Your Model')).toBeInTheDocument();
+    expect(screen.getByText('2. Generated OpenSCAD Code')).toBeInTheDocument();
   });
 
-  it('calls handleGenerate when Generate button is clicked', () => {
-    render(<Editor {...mockProps} />);
-    fireEvent.click(screen.getByText('Generate'));
-    expect(mockProps.handleGenerate).toHaveBeenCalled();
-  });
+  it('copies the generated code to the clipboard', async () => {
+    const mockWriteText = vi.fn();
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: mockWriteText },
+      writable: true,
+    });
 
-  it('renders the generated code', () => {
-    render(<Editor {...mockProps} />);
-    expect(screen.getByText('cube(20);')).toBeInTheDocument();
-  });
+    render(<Editor />);
 
-  it('calls handleCopyCode when Copy button is clicked', () => {
-    render(<Editor {...mockProps} />);
     fireEvent.click(screen.getByText('Copy'));
-    expect(mockProps.handleCopyCode).toHaveBeenCalled();
+
+    expect(mockWriteText).toHaveBeenCalledWith('cube(10);');
   });
 
-  it('renders generation info when available', () => {
-    render(<Editor {...mockProps} />);
-    expect(screen.getByText('Show Generation Info')).toBeInTheDocument();
+  it('disables the Generate button while loading', () => {
+    useStore.setState({ isLoading: true });
+    render(<Editor />);
+    expect(screen.getByText('Generating...')).toBeDisabled();
+  });
+
+  it('calls handleGenerate with the correct parameters on button click', async () => {
+    const handleGenerateSpy = vi.spyOn(api, 'handleGenerate').mockImplementation(async () => {});
+    useStore.setState({
+      prompt: 'a test prompt',
+      selectedModel: 'gemini-2.5-pro',
+      codeStyle: 'Modular',
+      isLoading: false,
+    });
+
+    render(<Editor />);
+    await act(async () => {
+      fireEvent.click(screen.getByText('Generate'));
+    });
+
+    expect(handleGenerateSpy).toHaveBeenCalledWith(
+      'a test prompt',
+      'gemini-2.5-pro',
+      expect.any(Function),
+      expect.any(Function),
+      expect.any(Function),
+      expect.any(Function),
+      undefined,
+      'Modular'
+    );
+  });
+
+  it('calls handleGenerate on key down', async () => {
+    const handleGenerateSpy = vi.spyOn(api, 'handleGenerate').mockImplementation(async () => {});
+    useStore.setState({ prompt: 'a test prompt' });
+
+    render(<Editor />);
+    await act(async () => {
+      fireEvent.keyDown(screen.getByPlaceholderText('e.g., a 20mm cube with a 5mm hole in the center'), { key: 'Enter', ctrlKey: true });
+    });
+
+    expect(handleGenerateSpy).toHaveBeenCalled();
   });
 });

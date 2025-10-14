@@ -10,6 +10,7 @@ const execFileAsync = promisify(execFile);
 
 const renderRequestBody = z.object({
   code: z.string().min(1),
+  format: z.enum(['stl', 'amf', '3mf']).optional(),
 });
 
 type RenderRequest = FastifyRequest<{ Body: z.infer<typeof renderRequestBody> }>;
@@ -23,30 +24,28 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         return reply.status(400).send({ error: 'Invalid request body', details: validation.error.issues });
       }
 
-      const { code } = validation.data;
-
-      fastify.log.info({ reqId: request.id }, `Rendering code: ${code}`);
+      const { code, format } = validation.data;
+      const outputFormat = format || 'stl';
 
       tempDir = await mkdtemp(join(tmpdir(), 'openpad-'));
       const scadPath = join(tempDir, 'model.scad');
-      const stlPath = join(tempDir, 'model.stl');
+      const outputPath = join(tempDir, `model.${outputFormat}`);
 
       await writeFile(scadPath, code);
 
       try {
-        await execFileAsync('openscad', ['-o', stlPath, scadPath]);
+        await execFileAsync('openscad', ['-o', outputPath, '--export-format', outputFormat, scadPath]);
       } catch (openscadError: any) {
-        fastify.log.error(openscadError, 'OpenSCAD execution failed');
         return reply.status(422).send({ 
           error: 'OpenSCAD failed to compile the provided code.',
           details: openscadError.stderr || openscadError.message,
         });
       }
       
-      const stlData = await readFile(stlPath);
-      const stlBase64 = stlData.toString('base64');
+      const outputData = await readFile(outputPath);
+      const outputBase64 = outputData.toString('base64');
 
-      return reply.send({ stl: stlBase64 });
+      return reply.send({ stl: outputBase64 });
 
     } catch (error) {
       fastify.log.error(error, 'Error in the render process');

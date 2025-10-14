@@ -1,7 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls, Center, Html } from '@react-three/drei';
-import { STLLoader } from 'three-stdlib';
+import { STLLoader, AMFLoader, ThreeMFLoader } from 'three-stdlib';
 import toast from 'react-hot-toast';
 
 // Fallback component that shows a toast only if loading is slow
@@ -18,22 +18,36 @@ function SlowLoadFallback() {
 }
 
 // Model component now uses useLoader for async parsing
-function Model({ url }: { url: string }) {
-  const geom = useLoader(STLLoader, url);
+function Model({ url, format }: { url: string, format: string }) {
+  let loader;
+  switch (format) {
+    case 'amf':
+      loader = AMFLoader;
+      break;
+    case '3mf':
+      loader = ThreeMFLoader;
+      break;
+    default:
+      loader = STLLoader;
+      break;
+  }
+  const geom = useLoader(loader, url);
+
   return (
     <mesh geometry={geom}>
-      <meshStandardMaterial color="#61dafb" />
+      <meshStandardMaterial vertexColors={true} />
     </mesh>
   );
 }
 
 interface ViewerProps {
   stl: string | null;
+  format: string;
 }
 
-export default function Viewer({ stl }: ViewerProps) {
+export default function Viewer({ stl, format }: ViewerProps) {
   // Create a data URL from the base64 STL string
-  const stlDataUrl = stl ? `data:application/octet-stream;base64,${stl}` : null;
+  const dataUrl = stl ? `data:application/octet-stream;base64,${stl}` : null;
 
   return (
     <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [5, 5, 5], fov: 50 }}>
@@ -42,7 +56,7 @@ export default function Viewer({ stl }: ViewerProps) {
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
       <Suspense fallback={<SlowLoadFallback />}>
         <Center>
-          {stlDataUrl && <Model url={stlDataUrl} />}
+          {dataUrl && <Model url={dataUrl} format={format} />}
         </Center>
       </Suspense>
       <OrbitControls />

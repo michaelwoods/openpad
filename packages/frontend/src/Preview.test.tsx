@@ -1,37 +1,47 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Preview from './Preview';
+import { useStore } from './store';
+import * as api from './api';
 import '@testing-library/jest-dom';
 
-// Mock Viewer component
-vi.mock('./Viewer', () => ({
-  default: vi.fn(() => <div data-testid="viewer-mock" />),
-}));
-
 describe('Preview', () => {
-  const mockProps = {
-    stlData: 'base64stl',
-    handleDownloadStl: vi.fn(),
-  };
+  beforeEach(() => {
+    useStore.setState({ stlData: null, prompt: '' });
+    vi.clearAllMocks();
+  });
 
-  it('renders the 3D preview title', () => {
-    render(<Preview {...mockProps} />);
+  it('renders the preview component', () => {
+    render(<Preview />);
     expect(screen.getByText('3. 3D Preview')).toBeInTheDocument();
   });
 
-  it('calls handleDownloadStl when Download button is clicked', () => {
-    render(<Preview {...mockProps} />);
-    fireEvent.click(screen.getByText('Download'));
-    expect(mockProps.handleDownloadStl).toHaveBeenCalled();
-  });
-
-  it('disables Download button when no STL data is available', () => {
-    render(<Preview {...mockProps} stlData={null} />);
+  it('disables the download button when stlData is null', () => {
+    render(<Preview />);
     expect(screen.getByText('Download')).toBeDisabled();
   });
 
-  it('renders the Viewer component', () => {
-    render(<Preview {...mockProps} />);
-    expect(screen.getByTestId('viewer-mock')).toBeInTheDocument();
+  it('enables the download button when stlData is available', () => {
+    useStore.setState({ stlData: 'some-stl-data' });
+    render(<Preview />);
+    expect(screen.getByText('Download')).toBeEnabled();
+  });
+
+  it('updates the format on change', () => {
+    render(<Preview />);
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'amf' } });
+    expect(select.value).toBe('amf');
+  });
+
+  it('calls handleDownload with the correct parameters on button click', () => {
+    const handleDownloadSpy = vi.spyOn(api, 'handleDownload');
+    useStore.setState({ stlData: 'some-stl-data', prompt: 'a test prompt' });
+
+    render(<Preview />);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '3mf' } });
+    fireEvent.click(screen.getByText('Download'));
+
+    expect(handleDownloadSpy).toHaveBeenCalledWith('a test prompt', 'some-stl-data', '3mf');
   });
 });
