@@ -6,7 +6,7 @@ import { writeFile, readFile, mkdtemp, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
-import { basePrompt, modularPrompt } from '../prompts';
+import { basePrompt, modularPrompt, attachmentPrompt } from '../prompts';
 
 const execFileAsync = promisify(execFile);
 
@@ -15,6 +15,7 @@ const generateRequestBody = z.object({
   prompt: z.string().min(1).max(1000),
   model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3-pro-preview', 'gemini-3-flash-preview']).optional(),
   style: z.enum(['Default', 'Modular']).optional(),
+  attachment: z.string().optional(),
 });
 
 type GenerateRequest = FastifyRequest<{ Body: z.infer<typeof generateRequestBody> }>;
@@ -28,7 +29,7 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         return reply.status(400).send({ error: 'Invalid request body', details: validation.error.issues });
       }
 
-      const { prompt, model: selectedModel, style } = validation.data;
+      const { prompt, model: selectedModel, style, attachment } = validation.data;
       const modelName = selectedModel || 'gemini-2.5-flash';
       const API_KEY = process.env.GEMINI_API_KEY;
       if (!API_KEY) {
@@ -40,6 +41,9 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       let fullPrompt = basePrompt;
       if (style === 'Modular') {
         fullPrompt += modularPrompt;
+      }
+      if (attachment) {
+        fullPrompt += `\n${attachmentPrompt}\n${attachment}\n--- END ATTACHED FILE CONTENT ---\n`;
       }
       fullPrompt += `
         **User Request:** "${prompt}"

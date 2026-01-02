@@ -13,3 +13,12 @@ export const basePrompt = `
 export const modularPrompt = `
   The code should be modular and parametric, making it easy for the user to modify and customize.
 `;
+
+export const attachmentPrompt = `
+  **Attached File:**
+  The user has provided an existing OpenSCAD file to work with. 
+  Use the content of this file as context or a starting point as requested by the user.
+  If the user asks to modify it, output the full modified code.
+  
+  --- ATTACHED FILE CONTENT ---
+`;

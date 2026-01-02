@@ -1,14 +1,19 @@
 import toast from 'react-hot-toast';
 
-export const generateCode = async (prompt: string, model: string, style: string) => {
+export const generateCode = async (prompt: string, model: string, style: string, attachment?: string | null) => {
   const chainOfThought = `You are an expert OpenSCAD modeler. I want to create a detailed model. First, break down the model into its main components. Then, for each component, describe how you would create it using OpenSCAD. Finally, write the OpenSCAD code to generate the entire model. The user's request is: ${prompt}`;
+
+  const body: any = { prompt: chainOfThought, model, style };
+  if (attachment) {
+    body.attachment = attachment;
+  }
 
   const response = await fetch('/api/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ prompt: chainOfThought, model, style }),
+    body: JSON.stringify(body),
   });
 
   const data = await response.json();
@@ -69,7 +74,8 @@ export const handleGenerate = async (
   setGeneratedCode: (generatedCode: string) => void,
   setGenerationInfo: (generationInfo: any) => void,
   editedCode?: string,
-  style?: string
+  style?: string,
+  attachment?: string | null
 ) => {
   setIsLoading(true);
   setStlData(null);
@@ -78,7 +84,7 @@ export const handleGenerate = async (
   const promise = (async () => {
     const { code, generationInfo } = editedCode
       ? { code: editedCode, generationInfo: null }
-      : await generateCode(prompt, selectedModel, style || 'Default');
+      : await generateCode(prompt, selectedModel, style || 'Default', attachment);
     
     setGeneratedCode(code);
     const { stl } = await renderModel(code);

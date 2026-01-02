@@ -65,7 +65,8 @@ describe('Editor', () => {
       expect.any(Function),
       expect.any(Function),
       undefined,
-      'Modular'
+      'Modular',
+      null
     );
   });
 
@@ -88,5 +89,27 @@ describe('Editor', () => {
     const select = screen.getByDisplayValue('Gemini 2.5 Flash'); 
     fireEvent.change(select, { target: { value: 'gemini-3-pro-preview' } });
     expect(useStore.getState().selectedModel).toBe('gemini-3-pro-preview');
+  });
+
+  it('updates the attachment state when a file is uploaded', async () => {
+    render(<Editor />);
+    const file = new File(['cylinder(10);'], 'test.scad', { type: 'text/plain' });
+    const fileInput = screen.getByLabelText(/Attach .scad file/i);
+
+    // Mock FileReader
+    const mockFileReader = {
+      readAsText: vi.fn(),
+      onload: null as any,
+      result: 'cylinder(10);',
+    };
+    window.FileReader = vi.fn(() => mockFileReader) as any;
+
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+      // manually trigger onload since we mocked it
+      mockFileReader.onload?.({ target: { result: 'cylinder(10);' } } as any);
+    });
+
+    expect(useStore.getState().attachment).toBe('cylinder(10);');
   });
 });

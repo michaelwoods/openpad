@@ -17,6 +17,8 @@ const Editor: React.FC = () => {
     generationInfo,
     codeStyle,
     setCodeStyle,
+    attachment,
+    setAttachment,
   } = useStore();
   const [editedCode, setEditedCode] = useState<string | null>(null);
 
@@ -28,6 +30,19 @@ const Editor: React.FC = () => {
     setEditedCode(e.target.value);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setAttachment(event.target?.result as string);
+      };
+      reader.readAsText(file);
+    } else {
+      setAttachment(null);
+    }
+  };
+
   const onGenerate = () => {
     handleGenerate(
       prompt,
@@ -37,7 +52,8 @@ const Editor: React.FC = () => {
       setGeneratedCode,
       setGenerationInfo,
       editedCode ?? undefined,
-      codeStyle
+      codeStyle,
+      attachment
     );
   };
 
@@ -63,6 +79,13 @@ const Editor: React.FC = () => {
         onKeyDown={handleKeyDown}
         placeholder="e.g., a 20mm cube with a 5mm hole in the center"
       />
+      <div style={{ marginBottom: '1rem' }}>
+        <label htmlFor="file-upload" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Attach .scad file (optional):</label>
+        <input id="file-upload" type="file" accept=".scad" onChange={handleFileUpload} />
+        {attachment && (
+            <button onClick={() => setAttachment(null)} style={{ marginLeft: '1rem', padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}>Clear Attachment</button>
+        )}
+      </div>
       <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
         <button 
           onClick={() => onGenerate()} 

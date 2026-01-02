@@ -9,6 +9,7 @@ interface AppState {
   showAbout: boolean;
   selectedModel: string;
   codeStyle: string;
+  attachment: string | null;
   setPrompt: (prompt: string) => void;
   setGeneratedCode: (generatedCode: string) => void;
   setStlData: (stlData: string | null) => void;
@@ -17,6 +18,7 @@ interface AppState {
   setShowAbout: (showAbout: boolean) => void;
   setSelectedModel: (selectedModel: string) => void;
   setCodeStyle: (codeStyle: string) => void;
+  setAttachment: (attachment: string | null) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -28,6 +30,7 @@ export const useStore = create<AppState>((set) => ({
   showAbout: false,
   selectedModel: 'gemini-2.5-flash',
   codeStyle: 'Default',
+  attachment: null,
   setPrompt: (prompt) => set({ prompt }),
   setGeneratedCode: (generatedCode) => set({ generatedCode }),
   setStlData: (stlData) => set({ stlData }),
@@ -36,4 +39,5 @@ export const useStore = create<AppState>((set) => ({
   setShowAbout: (showAbout) => set({ showAbout }),
   setSelectedModel: (selectedModel) => set({ selectedModel }),
   setCodeStyle: (codeStyle) => set({ codeStyle }),
+  setAttachment: (attachment) => set({ attachment }),
 }));
