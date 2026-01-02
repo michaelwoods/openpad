@@ -13,7 +13,7 @@ const execFileAsync = promisify(execFile);
 const getGenerativeAI = (apiKey: string) => new GoogleGenerativeAI(apiKey);
 const generateRequestBody = z.object({
   prompt: z.string().min(1).max(1000),
-  model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']).optional(),
+  model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3-pro-preview', 'gemini-3-flash-preview']).optional(),
   style: z.enum(['Default', 'Modular']).optional(),
 });
 

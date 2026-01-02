@@ -67,3 +67,29 @@ test('POST /api/generate should use the modular prompt', async () => {
   const expectedPrompt = `${basePrompt}${modularPrompt}\n        **User Request:** "a 20mm cube"\n      `;
   expect(mockGenerate).toHaveBeenCalledWith(expect.stringContaining(expectedPrompt));
 });
+
+test('POST /api/generate should use the specified model', async () => {
+  const app = await build();
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const mockGetGenerativeModel = jest.fn(() => ({
+    generateContent: jest.fn(() => Promise.resolve({
+      response: {
+        text: () => 'cube(10);',
+      },
+    })),
+  }));
+  (GoogleGenerativeAI as jest.Mock).mockImplementation(() => ({
+    getGenerativeModel: mockGetGenerativeModel,
+  }));
+
+  await app.inject({
+    method: 'POST',
+    url: '/api/generate',
+    payload: {
+      prompt: 'test',
+      model: 'gemini-3-flash-preview',
+    },
+  });
+
+  expect(mockGetGenerativeModel).toHaveBeenCalledWith({ model: 'gemini-3-flash-preview' });
+});

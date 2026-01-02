@@ -58,7 +58,7 @@ The Minimum Viable Product (MVP) is functional. The following core features have
 - CI: See `.github/workflows/` and ensure all checks are green before merging.
 
 ## Core Goals (Priority Items)
-- Natural language → OpenSCAD code via Google Gemini (with configurable models: Gemini 2.5 Flash/Pro).
+- Natural language prompt to OpenSCAD code generation via Google Gemini (with configurable models: Gemini 2.5 Flash/Pro, Gemini 3 Flash/Pro Preview).
 - 3D model preview via Three.js.
 - STL export for 3D printing (with on-demand filename generation).
 - Modern React/TypeScript codebase, Docker Compose v2, comprehensive tests.
