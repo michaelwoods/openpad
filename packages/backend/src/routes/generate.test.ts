@@ -123,3 +123,18 @@ test('POST /api/generate should include attachment in prompt', async () => {
   const expectedPrompt = `${basePrompt}\n${attachmentPrompt}\n${attachmentContent}\n--- END ATTACHED FILE CONTENT ---\n\n        **User Request:** "modify this"\n      `;
   expect(mockGenerate).toHaveBeenCalledWith(expect.stringContaining(expectedPrompt));
 });
+
+test('POST /api/generate should accept a 5000 character prompt', async () => {
+  const app = await build();
+  const longPrompt = 'a'.repeat(5000);
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/generate',
+    payload: {
+      prompt: longPrompt,
+    },
+  });
+
+  expect(res.statusCode).toBe(200);
+});
