@@ -54,7 +54,7 @@
 - [x] **Configurable AI Models**: Allow users to select between available Gemini models (e.g., Flash, Pro).
 - [x] **On-demand Filename Generation**: Generate a descriptive, file-safe filename for downloads using a separate AI call.
 - [ ] **Advanced Prompt Engineering**: Systematically improve the master prompt sent to the AI to enhance the quality and complexity of the generated OpenSCAD code.
-- [ ] **Prompt Management**: Allow users to save, load, and manage a history of their prompts.
+- [x] **Prompt Management**: Allow users to save, load, and manage a history of their prompts.
 
 ## 🖼️ Image Generation (New Feature)
 - [ ] **AI Image Generation**: Integrate an image generation model (e.g., via Gemini) to create a 2D rendering of the 3D model based on a descriptive prompt.
