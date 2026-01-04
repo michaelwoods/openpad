@@ -66,7 +66,8 @@ describe('Editor', () => {
       expect.any(Function),
       undefined,
       'Modular',
-      null
+      null,
+      expect.any(Function)
     );
   });
 
@@ -111,5 +112,23 @@ describe('Editor', () => {
     });
 
     expect(useStore.getState().attachment).toBe('cylinder(10);');
+  });
+
+  it('adds to history on successful generation', async () => {
+    vi.spyOn(api, 'handleGenerate').mockImplementation(async (
+      _p, _m, _sil, _ssd, _sgc, _sgi, _ec, _s, _a, onSuccess
+    ) => {
+      if (onSuccess) onSuccess('generated code');
+    });
+
+    useStore.getState().clearHistory();
+
+    render(<Editor />);
+    await act(async () => {
+      fireEvent.click(screen.getByText('Generate'));
+    });
+
+    expect(useStore.getState().history).toHaveLength(1);
+    expect(useStore.getState().history[0].code).toBe('generated code');
   });
 });

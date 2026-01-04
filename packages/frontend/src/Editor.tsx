@@ -19,6 +19,7 @@ const Editor: React.FC = () => {
     setCodeStyle,
     attachment,
     setAttachment,
+    addToHistory,
   } = useStore();
   const [editedCode, setEditedCode] = useState<string | null>(null);
 
@@ -53,7 +54,16 @@ const Editor: React.FC = () => {
       setGenerationInfo,
       editedCode ?? undefined,
       codeStyle,
-      attachment
+      attachment,
+      (code) => {
+        addToHistory({
+          prompt,
+          code,
+          model: selectedModel,
+          style: codeStyle,
+          attachment,
+        });
+      }
     );
   };
 

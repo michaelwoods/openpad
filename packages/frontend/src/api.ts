@@ -75,7 +75,8 @@ export const handleGenerate = async (
   setGenerationInfo: (generationInfo: any) => void,
   editedCode?: string,
   style?: string,
-  attachment?: string | null
+  attachment?: string | null,
+  onSuccess?: (code: string) => void
 ) => {
   setIsLoading(true);
   setStlData(null);
@@ -89,7 +90,7 @@ export const handleGenerate = async (
     setGeneratedCode(code);
     const { stl } = await renderModel(code);
     
-    return { stl, generationInfo };
+    return { code, stl, generationInfo };
   })();
 
   await toast.promise(promise, {
@@ -100,6 +101,9 @@ export const handleGenerate = async (
         setGenerationInfo(data.generationInfo);
       }
       setIsLoading(false);
+      if (onSuccess) {
+        onSuccess(data.code);
+      }
       return 'Successfully generated!';
     },
     error: (err) => {
