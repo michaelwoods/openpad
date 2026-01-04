@@ -23,6 +23,7 @@ interface AppState {
   codeStyle: string;
   attachment: string | null;
   history: HistoryItem[];
+  previewColor: string;
   setPrompt: (prompt: string) => void;
   setGeneratedCode: (generatedCode: string) => void;
   setStlData: (stlData: string | null) => void;
@@ -33,6 +34,7 @@ interface AppState {
   setSelectedModel: (selectedModel: string) => void;
   setCodeStyle: (codeStyle: string) => void;
   setAttachment: (attachment: string | null) => void;
+  setPreviewColor: (previewColor: string) => void;
   addToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
   clearHistory: () => void;
   loadHistoryItem: (item: HistoryItem) => void;
@@ -52,6 +54,7 @@ export const useStore = create<AppState>()(
       codeStyle: 'Default',
       attachment: null,
       history: [],
+      previewColor: '#ffaa00',
       setPrompt: (prompt) => set({ prompt }),
       setGeneratedCode: (generatedCode) => set({ generatedCode }),
       setStlData: (stlData) => set({ stlData }),
@@ -62,6 +65,7 @@ export const useStore = create<AppState>()(
       setSelectedModel: (selectedModel) => set({ selectedModel }),
       setCodeStyle: (codeStyle) => set({ codeStyle }),
       setAttachment: (attachment) => set({ attachment }),
+      setPreviewColor: (previewColor) => set({ previewColor }),
       addToHistory: (item) =>
         set((state) => ({
           history: [
@@ -88,7 +92,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'openpad-storage',
-      partialize: (state) => ({ history: state.history, prompt: state.prompt, selectedModel: state.selectedModel, codeStyle: state.codeStyle }), // Only persist history and current form state
+      partialize: (state) => ({ history: state.history, prompt: state.prompt, selectedModel: state.selectedModel, codeStyle: state.codeStyle, previewColor: state.previewColor }), // Only persist history and current form state
     }
   )
 );

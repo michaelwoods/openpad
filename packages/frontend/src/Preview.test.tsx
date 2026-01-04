@@ -44,4 +44,11 @@ describe('Preview', () => {
 
     expect(handleDownloadSpy).toHaveBeenCalledWith('a test prompt', 'some-stl-data', '3mf');
   });
+
+  it('updates the preview color', () => {
+    render(<Preview />);
+    const colorInput = screen.getByTitle('Change Model Color');
+    fireEvent.change(colorInput, { target: { value: '#00ff00' } });
+    expect(useStore.getState().previewColor).toBe('#00ff00');
+  });
 });

@@ -18,7 +18,7 @@ function SlowLoadFallback() {
 }
 
 // Model component now uses useLoader for async parsing
-function Model({ url, format }: { url: string, format: string }) {
+function Model({ url, format, color }: { url: string, format: string, color?: string }) {
   let loader;
   switch (format) {
     case 'amf':
@@ -35,7 +35,7 @@ function Model({ url, format }: { url: string, format: string }) {
 
   return (
     <mesh geometry={geom}>
-      <meshStandardMaterial vertexColors={true} />
+      <meshStandardMaterial color={color || 'orange'} vertexColors={!color} />
     </mesh>
   );
 }
@@ -43,9 +43,10 @@ function Model({ url, format }: { url: string, format: string }) {
 interface ViewerProps {
   stl: string | null;
   format: string;
+  color?: string;
 }
 
-export default function Viewer({ stl, format }: ViewerProps) {
+export default function Viewer({ stl, format, color }: ViewerProps) {
   // Create a data URL from the base64 STL string
   const dataUrl = stl ? `data:application/octet-stream;base64,${stl}` : null;
 
@@ -56,7 +57,7 @@ export default function Viewer({ stl, format }: ViewerProps) {
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
       <Suspense fallback={<SlowLoadFallback />}>
         <Center>
-          {dataUrl && <Model url={dataUrl} format={format} />}
+          {dataUrl && <Model url={dataUrl} format={format} color={color} />}
         </Center>
       </Suspense>
       <OrbitControls />
