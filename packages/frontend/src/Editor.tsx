@@ -91,6 +91,7 @@ const Editor: React.FC = () => {
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="e.g., a 20mm cube with a 5mm hole in the center"
+        aria-label="Model description"
       />
       <div style={{ marginBottom: '1rem' }}>
         <label htmlFor="file-upload" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Attach .scad file (optional):</label>
@@ -151,6 +152,7 @@ const Editor: React.FC = () => {
         value={editedCode ?? generatedCode}
         onChange={onCodeChange}
         className="code-editor"
+        aria-label="Generated code"
       />
       {generationInfo && (
         <details style={{ marginTop: '1rem' }}>

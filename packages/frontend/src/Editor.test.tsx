@@ -12,6 +12,7 @@ describe('Editor', () => {
       isLoading: false,
       prompt: '',
       selectedModel: 'gemini-2.5-flash',
+      provider: 'gemini',
       codeStyle: 'Default',
       generatedCode: 'cube(10);',
     });
@@ -105,7 +106,9 @@ describe('Editor', () => {
       onload: null as any,
       result: 'cylinder(10);',
     };
-    window.FileReader = vi.fn(() => mockFileReader) as any;
+    window.FileReader = vi.fn().mockImplementation(function () {
+      return mockFileReader;
+    }) as any;
 
     await act(async () => {
       fireEvent.change(fileInput, { target: { files: [file] } });
@@ -132,5 +135,62 @@ describe('Editor', () => {
 
     expect(useStore.getState().history).toHaveLength(1);
     expect(useStore.getState().history[0].code).toBe('generated code');
+  });
+
+  it('switches to text input when Ollama is selected', async () => {
+    render(<Editor />);
+    
+    // Find provider select
+    // It has options "Gemini" and "Ollama (Local)"
+    // We can find by role 'combobox' but there are multiple.
+    // The provider select has value 'gemini' initially.
+    const providerSelect = screen.getByDisplayValue('Gemini');
+    
+    await act(async () => {
+        fireEvent.change(providerSelect, { target: { value: 'ollama' } });
+    });
+
+    expect(useStore.getState().provider).toBe('ollama');
+
+    // Should see text input with placeholder
+    const modelInput = screen.getByPlaceholderText('Model name (e.g. codellama)');
+    expect(modelInput).toBeInTheDocument();
+
+    // Update model
+    await act(async () => {
+        fireEvent.change(modelInput, { target: { value: 'llama3' } });
+    });
+
+    expect(useStore.getState().selectedModel).toBe('llama3');
+  });
+
+  it('clears attachment when clear button is clicked', async () => {
+    useStore.setState({ attachment: 'some data' });
+    render(<Editor />);
+    
+    const clearButton = screen.getByText('Clear Attachment');
+    fireEvent.click(clearButton);
+    
+    expect(useStore.getState().attachment).toBeNull();
+  });
+
+  it('resets editedCode when generatedCode changes', () => {
+    render(<Editor />);
+    
+    // Simulate user editing code
+    const editor = screen.getByRole('textbox', { name: 'Generated code' }); // The code editor
+    fireEvent.change(editor, { target: { value: 'edited' } });
+    
+    // In real app, this state is local. How do we assert it?
+    // We can check if "Regenerate" button appears.
+    expect(screen.getByText('Regenerate')).toBeInTheDocument();
+
+    // Now update generatedCode in store
+    act(() => {
+        useStore.setState({ generatedCode: 'new code' });
+    });
+    
+    // Regenerate button should disappear because editedCode is reset to null
+    expect(screen.queryByText('Regenerate')).not.toBeInTheDocument();
   });
 });

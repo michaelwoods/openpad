@@ -5,7 +5,8 @@
     "dev": "pnpm --parallel --stream dev",
     "build": "pnpm --parallel build",
     "lint": "pnpm --parallel lint",
-    "test": "pnpm --parallel test"
+    "test": "pnpm --parallel test",
+    "test:coverage": "pnpm --parallel test:coverage"
   },
   "devDependencies": {
     "typescript": "^5.2.2",

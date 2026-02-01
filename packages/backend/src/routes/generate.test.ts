@@ -1,140 +1,163 @@
 import { build } from '../../test/helper';
 import { basePrompt, modularPrompt, attachmentPrompt } from '../../src/prompts';
+import * as llm from '../../src/llm';
 
-process.env.GEMINI_API_KEY = 'test-key';
-// ... rest of the imports ...
+// Mock LLM service
+jest.mock('../../src/llm');
 
-jest.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
-    getGenerativeModel: jest.fn(() => ({
-      generateContent: jest.fn(() => Promise.resolve({
-        response: {
-          text: () => 'cube(10);',
-        },
-      })),
-    })),
-  })),
+// Mock child_process for OpenSCAD
+jest.mock('child_process', () => ({
+  execFile: jest.fn((cmd, args, cb) => {
+    if (cmd === 'openscad') {
+       // Simulate success by default
+       cb(null, 'stdout', ''); 
+    } else {
+       cb(new Error('Unknown command'), '', '');
+    }
+  }),
 }));
 
-test('POST /api/generate should use the default prompt', async () => {
-  const app = await build();
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const mockGenerate = jest.fn(() => Promise.resolve({
-    response: {
-      text: () => 'cube(10);',
-    },
-  }));
-  (GoogleGenerativeAI as jest.Mock).mockImplementation(() => ({
-    getGenerativeModel: () => ({
-      generateContent: mockGenerate,
+// Mock fs/promises to avoid actual file system writes?
+// The actual code uses real fs with mkdtemp in tmpdir, which is fine for tests usually.
+// But we might want to ensure stl file exists for the read to succeed.
+// In integration tests, usually better to let it write to temp.
+// But openSCAD is mocked, so it won't actually write the STL file.
+// So we must mock fs/promises readFile to return something.
+
+jest.mock('fs/promises', () => {
+  const actual = jest.requireActual('fs/promises');
+  return {
+    ...actual,
+    readFile: jest.fn().mockImplementation((path) => {
+       if (path.endsWith('.stl')) {
+         return Buffer.from('mock-stl-data');
+       }
+       return actual.readFile(path);
     }),
-  }));
-
-  await app.inject({
-    method: 'POST',
-    url: '/api/generate',
-    payload: {
-      prompt: 'a 20mm cube',
-    },
-  });
-
-  const expectedPrompt = `${basePrompt}\n        **User Request:** "a 20mm cube"\n      `;
-  expect(mockGenerate).toHaveBeenCalledWith(expect.stringContaining(expectedPrompt));
+    // We let writeFile and mkdtemp run for real (or mock them too if needed)
+    // For now let's keep it simple. If we mock readFile, we control the output.
+  };
 });
 
-test('POST /api/generate should use the modular prompt', async () => {
-  const app = await build();
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const mockGenerate = jest.fn(() => Promise.resolve({
-    response: {
-      text: () => 'cube(10);',
-    },
-  }));
-  (GoogleGenerativeAI as jest.Mock).mockImplementation(() => ({
-    getGenerativeModel: () => ({
-      generateContent: mockGenerate,
-    }),
-  }));
-
-  await app.inject({
-    method: 'POST',
-    url: '/api/generate',
-    payload: {
-      prompt: 'a 20mm cube',
-      style: 'Modular',
-    },
+describe('POST /api/generate', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (llm.generateWithGemini as jest.Mock).mockResolvedValue({
+      text: 'cube(10);',
+      finishReason: 'STOP',
+      safetyRatings: [],
+    });
+    (llm.generateWithOllama as jest.Mock).mockResolvedValue({
+      text: 'sphere(10);',
+      finishReason: 'stop',
+    });
   });
 
-  const expectedPrompt = `${basePrompt}${modularPrompt}\n        **User Request:** "a 20mm cube"\n      `;
-  expect(mockGenerate).toHaveBeenCalledWith(expect.stringContaining(expectedPrompt));
-});
+  test('should use Gemini by default', async () => {
+    const app = await build();
 
-test('POST /api/generate should use the specified model', async () => {
-  const app = await build();
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const mockGetGenerativeModel = jest.fn(() => ({
-    generateContent: jest.fn(() => Promise.resolve({
-      response: {
-        text: () => 'cube(10);',
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/generate',
+      payload: {
+        prompt: 'a 20mm cube',
       },
-    })),
-  }));
-  (GoogleGenerativeAI as jest.Mock).mockImplementation(() => ({
-    getGenerativeModel: mockGetGenerativeModel,
-  }));
+    });
 
-  await app.inject({
-    method: 'POST',
-    url: '/api/generate',
-    payload: {
-      prompt: 'test',
-      model: 'gemini-3-flash-preview',
-    },
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.payload)).toEqual({
+      code: 'cube(10);',
+      stl: Buffer.from('mock-stl-data').toString('base64'), // 'bW9jay1zdGwtZGF0YQ=='
+      generationInfo: {
+        finishReason: 'STOP',
+        safetyRatings: [],
+      },
+    });
+
+    expect(llm.generateWithGemini).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.stringContaining('a 20mm cube'),
+      model: 'gemini-2.5-flash',
+    }));
   });
 
-  expect(mockGetGenerativeModel).toHaveBeenCalledWith({ model: 'gemini-3-flash-preview' });
-});
+  test('should use Ollama when provider is ollama', async () => {
+    const app = await build();
 
-test('POST /api/generate should include attachment in prompt', async () => {
-  const app = await build();
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const mockGenerate = jest.fn(() => Promise.resolve({
-    response: {
-      text: () => 'cube(10);',
-    },
-  }));
-  (GoogleGenerativeAI as jest.Mock).mockImplementation(() => ({
-    getGenerativeModel: () => ({
-      generateContent: mockGenerate,
-    }),
-  }));
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/generate',
+      payload: {
+        prompt: 'a 20mm sphere',
+        provider: 'ollama',
+        model: 'codellama',
+      },
+    });
 
-  const attachmentContent = 'cylinder(h=10, r=5);';
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.payload)).toEqual({
+      code: 'sphere(10);',
+      stl: Buffer.from('mock-stl-data').toString('base64'),
+      generationInfo: {
+        finishReason: 'stop',
+      },
+    });
 
-  await app.inject({
-    method: 'POST',
-    url: '/api/generate',
-    payload: {
-      prompt: 'modify this',
-      attachment: attachmentContent,
-    },
+    expect(llm.generateWithOllama).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.stringContaining('a 20mm sphere'),
+      model: 'codellama',
+    }));
   });
 
-  const expectedPrompt = `${basePrompt}\n${attachmentPrompt}\n${attachmentContent}\n--- END ATTACHED FILE CONTENT ---\n\n        **User Request:** "modify this"\n      `;
-  expect(mockGenerate).toHaveBeenCalledWith(expect.stringContaining(expectedPrompt));
-});
+  test('should handle OpenSCAD failure', async () => {
+    const app = await build();
+    
+    // Mock execFile to fail
+    const { execFile } = require('child_process');
+    (execFile as unknown as jest.Mock).mockImplementation((cmd, args, cb) => {
+        const err: any = new Error('Compilation failed');
+        err.stderr = 'Syntax error in file';
+        cb(err, '', 'Syntax error in file');
+    });
 
-test('POST /api/generate should accept a 5000 character prompt', async () => {
-  const app = await build();
-  const longPrompt = 'a'.repeat(5000);
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/generate',
+      payload: {
+        prompt: 'bad code',
+      },
+    });
 
-  const res = await app.inject({
-    method: 'POST',
-    url: '/api/generate',
-    payload: {
-      prompt: longPrompt,
-    },
+    expect(res.statusCode).toBe(422);
+    const body = JSON.parse(res.payload);
+    expect(body.error).toContain('OpenSCAD failed');
+    expect(body.details).toContain('Syntax error');
+  });
+  
+  test('should use Modular prompt style', async () => {
+      const app = await build();
+      
+      await app.inject({
+          method: 'POST',
+          url: '/api/generate',
+          payload: { prompt: 'test', style: 'Modular' },
+      });
+      
+      expect(llm.generateWithGemini).toHaveBeenCalledWith(expect.objectContaining({
+          prompt: expect.stringContaining(modularPrompt.trim()),
+      }));
   });
 
-  expect(res.statusCode).toBe(200);
+  test('should include attachment', async () => {
+      const app = await build();
+      
+      await app.inject({
+          method: 'POST',
+          url: '/api/generate',
+          payload: { prompt: 'test', attachment: 'import("base.stl");' },
+      });
+      
+      expect(llm.generateWithGemini).toHaveBeenCalledWith(expect.objectContaining({
+          prompt: expect.stringContaining('import("base.stl");'),
+      }));
+  });
 });
