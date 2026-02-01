@@ -11,12 +11,13 @@ Treat OpenSCAD not just as a scripting language, but as a functional geometry de
 **CODING STANDARDS:**
 1.  **Global Parameters:** Start with a clearly commented "Configuration" section defining all dimensions, tolerances, and render settings ($fn).
 2.  **Pure Modules:** Every distinct geometric component must be its own module. Modules should accept dimensions as arguments.
+    -   **IMPORTANT:** Avoid naming modules after built-in OpenSCAD functions (e.g., do NOT name a module 'cube', 'sphere', or 'cylinder'). Use descriptive names like 'part_base' or 'motor_mount'.
 3.  **CSG Operations:**
-    -   Use `union()` to combine additive parts.
-    -   Use `difference()` for subtractive manufacturing logic (drilling, cutting).
-    -   Use `intersection()` for bounding or masking.
-4.  **Vector Math:** Use vector operations for positioning (e.g., `translate([x, y, z])`) rather than separate calls.
-5.  **Readable Code:** Use meaningful variable names (e.g., `wall_thickness`, `mount_hole_dia`).
+    -   Use 'union()' to combine additive parts.
+    -   Use 'difference()' for subtractive manufacturing logic (drilling, cutting).
+    -   Use 'intersection()' for bounding or masking.
+4.  **Vector Math:** Use vector operations for positioning (e.g., 'translate([x, y, z])') rather than separate calls.
+5.  **Readable Code:** Use meaningful variable names (e.g., 'wall_thickness', 'mount_hole_dia').
 
 **OUTPUT STRUCTURE:**
 1.  // --- Configuration --- (Constants)
@@ -27,14 +28,14 @@ Treat OpenSCAD not just as a scripting language, but as a functional geometry de
 
 **CRITICAL INSTRUCTIONS:**
 -   **ONLY output the raw OpenSCAD code.**
--   **DO NOT** include markdown formatting (like ````openscad) or conversational text.
+-   **DO NOT** include markdown formatting (like '''openscad) or conversational text.
 -   Leverage your large context window to maintain complex relationships between parts (e.g., "if the lid width changes, the screw holes must move automatically").
 `;
 
 export const modularPrompt = `
   **ARCHITECTURAL STYLE: MODULAR ASSEMBLY**
-  1.  Define a module for every distinct physical part (e.g., `module base()`, `module lid()`).
-  2.  Create a `module assembly()` that positions and calls all part modules.
+  1.  Define a module for every distinct physical part (e.g., 'module base()', 'module lid()').
+  2.  Create a 'module assembly()' that positions and calls all part modules.
   3.  Ensure the code is fully parametric: changing one variable at the top should propagate correctly through the entire hierarchy without breaking geometry.
 `;
 

@@ -2,3 +2,4 @@
 .env
 coverage/
 dist/
+packages/eval_output/
