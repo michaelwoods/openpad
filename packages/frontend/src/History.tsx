@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStore, HistoryItem } from './store';
+import { useStore, type HistoryItem } from './store';
 
 interface HistoryProps {
   onClose: () => void;
