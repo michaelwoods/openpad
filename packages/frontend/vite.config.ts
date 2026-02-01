@@ -23,4 +23,4 @@ export default defineConfig({
     setupFiles: './src/setupTests.ts',
 
   }
-} as any)
+})

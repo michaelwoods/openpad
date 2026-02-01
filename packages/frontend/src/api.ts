@@ -1,9 +1,9 @@
 import toast from 'react-hot-toast';
 
-export const generateCode = async (prompt: string, model: string, style: string, attachment?: string | null) => {
+export const generateCode = async (prompt: string, model: string, style: string, attachment?: string | null, provider: 'gemini' | 'ollama' = 'gemini') => {
   const chainOfThought = `You are an expert OpenSCAD modeler. I want to create a detailed model. First, break down the model into its main components. Then, for each component, describe how you would create it using OpenSCAD. Finally, write the OpenSCAD code to generate the entire model. The user's request is: ${prompt}`;
 
-  const body: any = { prompt: chainOfThought, model, style };
+  const body: { prompt: string; model: string; style: string; provider: string; attachment?: string } = { prompt: chainOfThought, model, style, provider };
   if (attachment) {
     body.attachment = attachment;
   }
@@ -69,10 +69,11 @@ export const downloadFile = (filename: string, stlData: string, format: string) 
 export const handleGenerate = async (
   prompt: string,
   selectedModel: string,
+  provider: 'gemini' | 'ollama',
   setIsLoading: (isLoading: boolean) => void,
   setStlData: (stlData: string | null) => void,
   setGeneratedCode: (generatedCode: string) => void,
-  setGenerationInfo: (generationInfo: any) => void,
+  setGenerationInfo: (generationInfo: Record<string, unknown> | null) => void,
   editedCode?: string,
   style?: string,
   attachment?: string | null,
@@ -85,7 +86,7 @@ export const handleGenerate = async (
   const promise = (async () => {
     const { code, generationInfo } = editedCode
       ? { code: editedCode, generationInfo: null }
-      : await generateCode(prompt, selectedModel, style || 'Default', attachment);
+      : await generateCode(prompt, selectedModel, style || 'Default', attachment, provider);
     
     setGeneratedCode(code);
     const { stl } = await renderModel(code);

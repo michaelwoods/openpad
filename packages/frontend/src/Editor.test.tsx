@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Editor from './Editor';
@@ -60,6 +61,7 @@ describe('Editor', () => {
     expect(handleGenerateSpy).toHaveBeenCalledWith(
       'a test prompt',
       'gemini-2.5-pro',
+      'gemini',
       expect.any(Function),
       expect.any(Function),
       expect.any(Function),
@@ -116,7 +118,7 @@ describe('Editor', () => {
 
   it('adds to history on successful generation', async () => {
     vi.spyOn(api, 'handleGenerate').mockImplementation(async (
-      _p, _m, _sil, _ssd, _sgc, _sgi, _ec, _s, _a, onSuccess
+      _p, _m, _prov, _sil, _ssd, _sgc, _sgi, _ec, _s, _a, onSuccess
     ) => {
       if (onSuccess) onSuccess('generated code');
     });

@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import { describe, it } from 'vitest';
 import Viewer from './Viewer';
 import '@testing-library/jest-dom';
 

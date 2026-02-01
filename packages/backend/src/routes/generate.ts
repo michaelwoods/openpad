@@ -1,5 +1,4 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import { execFile } from 'child_process';
 import { writeFile, readFile, mkdtemp, rm } from 'fs/promises';
@@ -7,13 +6,14 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
 import { basePrompt, modularPrompt, attachmentPrompt } from '../prompts';
+import { generateWithGemini, generateWithOllama } from '../llm';
 
 const execFileAsync = promisify(execFile);
 
-const getGenerativeAI = (apiKey: string) => new GoogleGenerativeAI(apiKey);
 const generateRequestBody = z.object({
   prompt: z.string().min(1).max(5000),
-  model: z.enum(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3-pro-preview', 'gemini-3-flash-preview']).optional(),
+  provider: z.enum(['gemini', 'ollama']).optional().default('gemini'),
+  model: z.string().optional(),
   style: z.enum(['Default', 'Modular']).optional(),
   attachment: z.string().optional(),
 });
@@ -29,31 +29,53 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         return reply.status(400).send({ error: 'Invalid request body', details: validation.error.issues });
       }
 
-      const { prompt, model: selectedModel, style, attachment } = validation.data;
-      const modelName = selectedModel || 'gemini-2.5-flash';
-      const API_KEY = process.env.GEMINI_API_KEY;
-      if (!API_KEY) {
-        throw new Error('GEMINI_API_KEY is not set');
-      }
-      const genAI = getGenerativeAI(API_KEY);
-      const model = genAI.getGenerativeModel({ model: modelName });
-
+      const { prompt, provider, model: selectedModel, style, attachment } = validation.data;
+      
       let fullPrompt = basePrompt;
       if (style === 'Modular') {
         fullPrompt += modularPrompt;
       }
       if (attachment) {
-        fullPrompt += `\n${attachmentPrompt}\n${attachment}\n--- END ATTACHED FILE CONTENT ---\n`;
+        fullPrompt += `
+${attachmentPrompt}
+${attachment}
+--- END ATTACHED FILE CONTENT ---
+`;
       }
       fullPrompt += `
         **User Request:** "${prompt}"
       `;
 
-      fastify.log.info({ reqId: request.id }, `Generating code for prompt: ${prompt}`);
+      fastify.log.info({ reqId: request.id }, `Generating code for prompt: ${prompt} using ${provider}`);
 
-      const result = await model.generateContent(fullPrompt);
-      const generationResult = await result.response;
-      let code = generationResult.text();
+      let code = '';
+      let generationInfo = {};
+
+      if (provider === 'ollama') {
+        const modelName = selectedModel || 'codellama';
+        const result = await generateWithOllama({
+          prompt: fullPrompt,
+          model: modelName,
+          apiHost: process.env.OLLAMA_HOST
+        });
+        code = result.text;
+        generationInfo = {
+          finishReason: result.finishReason,
+        };
+      } else {
+        // Default to Gemini
+        const modelName = selectedModel || 'gemini-2.5-flash';
+        const result = await generateWithGemini({
+          prompt: fullPrompt,
+          model: modelName,
+          apiKey: process.env.GEMINI_API_KEY
+        });
+        code = result.text;
+        generationInfo = {
+          finishReason: result.finishReason,
+          safetyRatings: result.safetyRatings,
+        };
+      }
 
       const match = code.match(/```openscad\n([\s\S]*?)```/);
       if (match) {
@@ -85,12 +107,6 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       
       const stlData = await readFile(stlPath);
       const stlBase64 = stlData.toString('base64');
-
-      // 3. Send code, STL, and generation info back to the client
-      const generationInfo = {
-        finishReason: generationResult.candidates?.[0]?.finishReason,
-        safetyRatings: generationResult.candidates?.[0]?.safetyRatings,
-      };
 
       return reply.send({ code, stl: stlBase64, generationInfo });
 

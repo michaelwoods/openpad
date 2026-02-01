@@ -7,7 +7,7 @@
   - Add OpenAI configuration panel
   - Test code generation quality vs Gemini
 
-- [ ] **Ollama Local Integration** 
+- [x] **Ollama Local Integration** 
   - Add Ollama local server support (http://localhost:11434)
   - Support for DeepSeek Coder V2, CodeLlama, Llama 3.1
   - Add model discovery and management
@@ -19,7 +19,7 @@
   - Hardware requirements detection
   - Local inference without API costs
 
-- [ ] **Backend Selection UI**
+- [x] **Backend Selection UI**
   - Provider dropdown in configuration panel
   - Dynamic settings based on selected provider
   - Connection testing for each provider

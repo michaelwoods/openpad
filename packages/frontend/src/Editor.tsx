@@ -8,6 +8,8 @@ const Editor: React.FC = () => {
     setPrompt,
     selectedModel,
     setSelectedModel,
+    provider,
+    setProvider,
     isLoading,
     setIsLoading,
     setStlData,
@@ -48,6 +50,7 @@ const Editor: React.FC = () => {
     handleGenerate(
       prompt,
       selectedModel,
+      provider,
       setIsLoading,
       setStlData,
       setGeneratedCode,
@@ -104,13 +107,28 @@ const Editor: React.FC = () => {
         >
           {isLoading ? 'Generating...' : 'Generate'}
         </button>
-        <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} disabled={isLoading}>
-          <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
-          <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-          <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-          <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
-          <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+        <select value={provider} onChange={(e) => setProvider(e.target.value as 'gemini' | 'ollama')} disabled={isLoading}>
+          <option value="gemini">Gemini</option>
+          <option value="ollama">Ollama (Local)</option>
         </select>
+        {provider === 'gemini' ? (
+          <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} disabled={isLoading}>
+            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+            <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
+            <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+          </select>
+        ) : (
+          <input 
+            type="text" 
+            value={selectedModel} 
+            onChange={(e) => setSelectedModel(e.target.value)} 
+            placeholder="Model name (e.g. codellama)"
+            disabled={isLoading}
+            style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }} 
+          />
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label>Style:</label>
           <select value={codeStyle} onChange={(e) => setCodeStyle(e.target.value)} disabled={isLoading}>

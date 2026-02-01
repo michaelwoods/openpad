@@ -4,7 +4,7 @@
 
 ## ✨ Features
 
--   **AI-Powered Code Generation:** Describe your 3D model in plain English and watch the OpenSCAD code get generated in real-time, with the option to select between Gemini 2.5 Flash/Pro and Gemini 3 Flash/Pro Preview models.
+-   **AI-Powered Code Generation:** Describe your 3D model in plain English and watch the OpenSCAD code get generated in real-time, with the option to select between **Google Gemini** (Cloud) and **Ollama** (Local) backends.
 -   **Instant 3D Preview:** A live, interactive 3D viewer powered by Three.js renders your model as you make changes.
 -   **STL Export:** Download your generated models as `.stl` files with automatically generated, descriptive filenames, ready for any 3D printer or slicer software.
 -   **Modern Tech Stack:** Built with React, TypeScript, Node.js (Fastify), and Vite for a fast and reliable developer experience.
@@ -34,6 +34,7 @@
     ```ini
     # .env
     GEMINI_API_KEY="YOUR_API_KEY_HERE"
+    OLLAMA_HOST="http://127.0.0.1:11434" # Optional, for local Ollama support
     ```
 
 3.  **Install dependencies:**

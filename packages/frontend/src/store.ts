@@ -15,11 +15,12 @@ interface AppState {
   prompt: string;
   generatedCode: string;
   stlData: string | null;
-  generationInfo: any;
+  generationInfo: Record<string, unknown> | null;
   isLoading: boolean;
   showAbout: boolean;
   showHistory: boolean;
   selectedModel: string;
+  provider: 'gemini' | 'ollama';
   codeStyle: string;
   attachment: string | null;
   history: HistoryItem[];
@@ -27,11 +28,12 @@ interface AppState {
   setPrompt: (prompt: string) => void;
   setGeneratedCode: (generatedCode: string) => void;
   setStlData: (stlData: string | null) => void;
-  setGenerationInfo: (generationInfo: any) => void;
+  setGenerationInfo: (generationInfo: Record<string, unknown> | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setShowAbout: (showAbout: boolean) => void;
   setShowHistory: (showHistory: boolean) => void;
   setSelectedModel: (selectedModel: string) => void;
+  setProvider: (provider: 'gemini' | 'ollama') => void;
   setCodeStyle: (codeStyle: string) => void;
   setAttachment: (attachment: string | null) => void;
   setPreviewColor: (previewColor: string) => void;
@@ -51,6 +53,7 @@ export const useStore = create<AppState>()(
       showAbout: false,
       showHistory: false,
       selectedModel: 'gemini-2.5-flash',
+      provider: 'gemini',
       codeStyle: 'Default',
       attachment: null,
       history: [],
@@ -63,6 +66,7 @@ export const useStore = create<AppState>()(
       setShowAbout: (showAbout) => set({ showAbout }),
       setShowHistory: (showHistory) => set({ showHistory }),
       setSelectedModel: (selectedModel) => set({ selectedModel }),
+      setProvider: (provider) => set({ provider }),
       setCodeStyle: (codeStyle) => set({ codeStyle }),
       setAttachment: (attachment) => set({ attachment }),
       setPreviewColor: (previewColor) => set({ previewColor }),
@@ -92,7 +96,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'openpad-storage',
-      partialize: (state) => ({ history: state.history, prompt: state.prompt, selectedModel: state.selectedModel, codeStyle: state.codeStyle, previewColor: state.previewColor }), // Only persist history and current form state
+      partialize: (state) => ({ history: state.history, prompt: state.prompt, selectedModel: state.selectedModel, provider: state.provider, codeStyle: state.codeStyle, previewColor: state.previewColor }), // Only persist history and current form state
     }
   )
 );
