@@ -6,7 +6,10 @@
     "build": "pnpm --parallel build",
     "lint": "pnpm --parallel lint",
     "test": "pnpm --parallel test",
-    "test:coverage": "pnpm --parallel test:coverage"
+    "test:coverage": "pnpm --parallel test:coverage",
+    "dev:backend": "pnpm --filter backend dev",
+    "docker:dev": "docker compose --profile dev up --build",
+    "docker:prod": "docker compose --profile production up -d"
   },
   "devDependencies": {
     "typescript": "^5.2.2",
