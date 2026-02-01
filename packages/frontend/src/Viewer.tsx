@@ -51,7 +51,7 @@ export default function Viewer({ stl, format, color }: ViewerProps) {
   const dataUrl = stl ? `data:application/octet-stream;base64,${stl}` : null;
 
   return (
-    <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [5, 5, 5], fov: 50 }}>
+    <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [50, 50, 50], fov: 50 }}>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
