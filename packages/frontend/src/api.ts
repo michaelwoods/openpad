@@ -66,6 +66,20 @@ export const downloadFile = (filename: string, stlData: string, format: string) 
   document.body.removeChild(link);
 };
 
+export const getModels = async (): Promise<string[]> => {
+  try {
+    const response = await fetch('/api/models');
+    if (!response.ok) {
+      throw new Error('Failed to fetch models');
+    }
+    const data = await response.json();
+    return data.models || [];
+  } catch (error) {
+    console.error('Error fetching models:', error);
+    return [];
+  }
+};
+
 export const handleGenerate = async (
   prompt: string,
   selectedModel: string,

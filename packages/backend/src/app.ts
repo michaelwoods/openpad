@@ -3,6 +3,7 @@ import helmet from '@fastify/helmet';
 import generateRoute from './routes/generate';
 import filenameRoute from './routes/filename';
 import renderRoute from './routes/render';
+import modelsRoute from './routes/models';
 
 export default async function (fastify: any, opts: any) {
   // Register plugins
@@ -12,6 +13,7 @@ export default async function (fastify: any, opts: any) {
   fastify.register(generateRoute, { prefix: '/api' });
   fastify.register(renderRoute, { prefix: '/api' });
   fastify.register(filenameRoute, { prefix: '/api' });
+  fastify.register(modelsRoute, { prefix: '/api' });
 
   fastify.get('/health', async (request: any, reply: any) => {
     return { status: 'ok', timestamp: new Date().toISOString() };

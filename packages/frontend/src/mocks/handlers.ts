@@ -17,4 +17,9 @@ export const handlers = [
       filename: 'test.stl',
     });
   }),
+  http.get('/api/models', () => {
+    return HttpResponse.json({
+      models: ['llama3', 'codellama'],
+    });
+  }),
 ];

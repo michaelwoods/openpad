@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from './store';
-import { handleGenerate } from './api';
+import { handleGenerate, getModels } from './api';
 
 const Editor: React.FC = () => {
   const {
@@ -24,10 +24,27 @@ const Editor: React.FC = () => {
     addToHistory,
   } = useStore();
   const [editedCode, setEditedCode] = useState<string | null>(null);
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
 
   useEffect(() => {
     setEditedCode(null);
   }, [generatedCode]);
+
+  useEffect(() => {
+    if (provider === 'ollama') {
+      getModels().then((models) => {
+        setOllamaModels(models);
+        // If current selected model is not in list (or is a gemini one), select first available
+        if (models.length > 0 && (!selectedModel || selectedModel.startsWith('gemini'))) {
+          setSelectedModel(models[0]);
+        } else if (models.length === 0) {
+           // Fallback if no models found or connection failed
+           // Keep input as text or maybe show error? 
+           // For now, we will handle empty list in render
+        }
+      });
+    }
+  }, [provider, setSelectedModel, selectedModel]);
 
   const onCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditedCode(e.target.value);
@@ -121,14 +138,22 @@ const Editor: React.FC = () => {
             <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
           </select>
         ) : (
-          <input 
-            type="text" 
-            value={selectedModel} 
-            onChange={(e) => setSelectedModel(e.target.value)} 
-            placeholder="Model name (e.g. codellama)"
-            disabled={isLoading}
-            style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }} 
-          />
+          ollamaModels.length > 0 ? (
+             <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} disabled={isLoading}>
+               {ollamaModels.map((model) => (
+                 <option key={model} value={model}>{model}</option>
+               ))}
+             </select>
+          ) : (
+            <input 
+                type="text" 
+                value={selectedModel} 
+                onChange={(e) => setSelectedModel(e.target.value)} 
+                placeholder="Model name (e.g. codellama)"
+                disabled={isLoading}
+                style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }} 
+            />
+          )
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label>Style:</label>

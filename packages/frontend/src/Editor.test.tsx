@@ -152,16 +152,23 @@ describe('Editor', () => {
 
     expect(useStore.getState().provider).toBe('ollama');
 
-    // Should see text input with placeholder
-    const modelInput = screen.getByPlaceholderText('Model name (e.g. codellama)');
-    expect(modelInput).toBeInTheDocument();
-
-    // Update model
+    // Should see dropdown with models because we mock getModels response in handlers.ts
+    // Wait for the dropdown to appear populated?
+    // The default handler returns ['llama3', 'codellama']
+    
+    // We expect a combobox with value 'llama3' (default first one)
+    // There are multiple comboboxes.
+    
+    // Let's find by display value
+    const modelSelect = await screen.findByDisplayValue('llama3');
+    expect(modelSelect).toBeInTheDocument();
+    
+    // Change to codellama
     await act(async () => {
-        fireEvent.change(modelInput, { target: { value: 'llama3' } });
+        fireEvent.change(modelSelect, { target: { value: 'codellama' } });
     });
 
-    expect(useStore.getState().selectedModel).toBe('llama3');
+    expect(useStore.getState().selectedModel).toBe('codellama');
   });
 
   it('clears attachment when clear button is clicked', async () => {

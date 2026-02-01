@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateCode, renderModel, getFilename } from './api';
+import { generateCode, renderModel, getFilename, getModels } from './api';
 import { server } from './mocks/server';
 import { http, HttpResponse } from 'msw';
 
@@ -89,5 +89,29 @@ describe('API Service', () => {
   
         await expect(getFilename('prompt')).rejects.toThrow('Could not generate filename');
       });
+  });
+
+  describe('getModels', () => {
+    it('returns models list on success', async () => {
+      server.use(
+        http.get('/api/models', () => {
+          return HttpResponse.json({ models: ['model1', 'model2'] });
+        })
+      );
+
+      const models = await getModels();
+      expect(models).toEqual(['model1', 'model2']);
+    });
+
+    it('returns empty array on failure', async () => {
+      server.use(
+        http.get('/api/models', () => {
+          return HttpResponse.json({}, { status: 500 });
+        })
+      );
+
+      const models = await getModels();
+      expect(models).toEqual([]);
+    });
   });
 });
