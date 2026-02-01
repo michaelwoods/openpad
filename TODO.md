@@ -29,9 +29,9 @@
 - [ ] **UI/UX Overhaul**: Improve layout, theming, and visual appeal. Implement a responsive design for mobile and desktop.
 - [x] **About Page**: Create a simple, static "About" page for the OpenPAD application.
 - [x] **Display Generation Info**: Show the raw response or reasoning from the Gemini model to help users iteratively improve their prompts.
-- [ ] **Code Editor with Syntax Highlighting**
+- [x] **Code Editor with Syntax Highlighting**
   - Integrate Monaco Editor for OpenSCAD
-  - Syntax highlighting for OpenSCAD language
+  - Syntax highlighting for OpenSCAD language (Currently using C++ as fallback)
   - Auto-completion for OpenSCAD functions
   - Error detection and highlighting
   - Code formatting and linting

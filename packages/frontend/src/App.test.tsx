@@ -43,7 +43,7 @@ describe('App', () => {
     fireEvent.click(screen.getByText('Generate'));
 
     await waitFor(() => {
-      expect(screen.getByText('cube(10);')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('cube(10);')).toBeInTheDocument();
     });
   });
 });

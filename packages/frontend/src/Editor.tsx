@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MonacoEditor from '@monaco-editor/react';
 import { useStore } from './store';
 import { handleGenerate, getModels } from './api';
 
@@ -46,8 +47,10 @@ const Editor: React.FC = () => {
     }
   }, [provider, setSelectedModel, selectedModel]);
 
-  const onCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedCode(e.target.value);
+  const handleEditorChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setEditedCode(value);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,12 +176,21 @@ const Editor: React.FC = () => {
           <button onClick={handleCopyCode} title="Copy code" style={{ marginTop: 0 }}>Copy</button>
         </div>
       </div>
-      <textarea
-        value={editedCode ?? generatedCode}
-        onChange={onCodeChange}
-        className="code-editor"
-        aria-label="Generated code"
-      />
+      <div className="code-editor-container" style={{ height: '400px', border: '1px solid #ccc' }}>
+        <MonacoEditor
+          height="100%"
+          defaultLanguage="cpp" 
+          value={editedCode ?? generatedCode}
+          onChange={handleEditorChange}
+          theme="light"
+          options={{
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            fontSize: 14,
+            ariaLabel: "Generated code" 
+          }}
+        />
+      </div>
       {generationInfo && (
         <details style={{ marginTop: '1rem' }}>
           <summary>Show Generation Info</summary>

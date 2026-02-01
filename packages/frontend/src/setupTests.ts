@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import React from 'react';
 import { server } from './mocks/server';
 
 // Establish API mocking before all tests.
@@ -31,4 +32,16 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
+
+import React from 'react';
+
+vi.mock('@monaco-editor/react', () => ({
+  default: ({ value, onChange, options }: any) => {
+    return React.createElement('textarea', {
+      'aria-label': options?.ariaLabel || "Code Editor",
+      value: value,
+      onChange: (e: any) => onChange(e.target.value),
+    });
+  },
+}));
 
