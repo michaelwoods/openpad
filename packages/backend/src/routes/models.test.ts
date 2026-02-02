@@ -4,11 +4,62 @@ import { build } from '../../test/helper';
 global.fetch = jest.fn();
 
 describe('GET /api/models', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = { ...originalEnv };
   });
 
-  it('should return list of models from Ollama', async () => {
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
+  it('should return Gemini provider if API key is set', async () => {
+    process.env.GEMINI_API_KEY = 'test-key';
+    
+    // Mock Ollama failure to isolate Gemini test
+    (global.fetch as jest.Mock).mockRejectedValue(new Error('Connection failed'));
+
+    const app = await build();
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/models',
+    });
+
+    expect(res.statusCode).toBe(200);
+    const payload = JSON.parse(res.payload);
+    
+    const gemini = payload.providers.find((p: any) => p.id === 'gemini');
+    expect(gemini).toBeDefined();
+    expect(gemini.configured).toBe(true);
+    expect(gemini.models.length).toBeGreaterThan(0);
+    
+    const ollama = payload.providers.find((p: any) => p.id === 'ollama');
+    expect(ollama).toBeDefined();
+    expect(ollama.configured).toBe(false);
+  });
+
+  it('should return Gemini provider as unconfigured if API key is missing', async () => {
+    delete process.env.GEMINI_API_KEY;
+    
+    (global.fetch as jest.Mock).mockRejectedValue(new Error('Connection failed'));
+
+    const app = await build();
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/models',
+    });
+
+    const payload = JSON.parse(res.payload);
+    const gemini = payload.providers.find((p: any) => p.id === 'gemini');
+    expect(gemini).toBeDefined();
+    expect(gemini.configured).toBe(false);
+  });
+
+  it('should return Ollama provider with models if fetch succeeds', async () => {
+    delete process.env.GEMINI_API_KEY;
+    
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -25,13 +76,15 @@ describe('GET /api/models', () => {
       url: '/api/models',
     });
 
-    expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.payload)).toEqual({
-      models: ['llama3:latest', 'codellama:latest'],
-    });
+    const payload = JSON.parse(res.payload);
+    const ollama = payload.providers.find((p: any) => p.id === 'ollama');
+    expect(ollama.configured).toBe(true);
+    expect(ollama.models).toEqual(['llama3:latest', 'codellama:latest']);
   });
 
-  it('should return 502 if Ollama returns error', async () => {
+  it('should handle Ollama fetch errors gracefully', async () => {
+    delete process.env.GEMINI_API_KEY;
+    
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       status: 500,
@@ -43,24 +96,10 @@ describe('GET /api/models', () => {
       url: '/api/models',
     });
 
-    expect(res.statusCode).toBe(502);
-    expect(JSON.parse(res.payload)).toEqual({
-      error: 'Failed to fetch models from Ollama',
-    });
-  });
-
-  it('should return 502 if fetch fails (network error)', async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(new Error('Connection failed'));
-
-    const app = await build();
-    const res = await app.inject({
-      method: 'GET',
-      url: '/api/models',
-    });
-
-    expect(res.statusCode).toBe(502);
-    expect(JSON.parse(res.payload)).toEqual({
-      error: 'Could not connect to Ollama',
-    });
+    expect(res.statusCode).toBe(200);
+    const payload = JSON.parse(res.payload);
+    const ollama = payload.providers.find((p: any) => p.id === 'ollama');
+    expect(ollama.configured).toBe(false);
+    expect(ollama.models).toEqual([]);
   });
 });

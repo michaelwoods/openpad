@@ -1,28 +1,68 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 
+interface Provider {
+  id: string;
+  name: string;
+  models: string[];
+  configured: boolean;
+}
+
 export default async function (fastify: FastifyInstance, options: FastifyPluginOptions) {
   fastify.get('/models', async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const ollamaHost = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
-      const response = await fetch(`${ollamaHost}/api/tags`);
-      
-      if (!response.ok) {
-         // If Ollama is not running or unreachable, return empty list instead of erroring out completely?
-         // Or strictly error? Let's return error so frontend knows.
-         fastify.log.error(`Ollama /api/tags failed with ${response.status}`);
-         return reply.status(502).send({ error: 'Failed to fetch models from Ollama' });
-      }
+    const providers: Provider[] = [];
 
-      const data: any = await response.json();
-      // Ollama returns { models: [ { name: 'llama3:latest', ... } ] }
-      const models = data.models?.map((m: any) => m.name) || [];
-      
-      return { models };
+    // 1. Gemini Provider
+    const geminiKey = process.env.GEMINI_API_KEY;
+    providers.push({
+      id: 'gemini',
+      name: 'Google Gemini',
+      models: [
+        'gemini-2.5-flash-lite',
+        'gemini-2.5-flash',
+        'gemini-2.5-pro',
+        'gemini-3-pro-preview',
+        'gemini-3-flash-preview'
+      ],
+      configured: !!geminiKey && geminiKey.length > 0
+    });
+
+    // 2. Ollama Provider
+    const ollamaHost = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout for local check
+
+      const response = await fetch(`${ollamaHost}/api/tags`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data: any = await response.json();
+        const models = data.models?.map((m: any) => m.name) || [];
+        providers.push({
+          id: 'ollama',
+          name: 'Ollama (Local)',
+          models: models,
+          configured: true
+        });
+      } else {
+        fastify.log.warn(`Ollama reachable but returned ${response.status}`);
+        providers.push({
+          id: 'ollama',
+          name: 'Ollama (Local)',
+          models: [],
+          configured: false
+        });
+      }
     } catch (error) {
-      fastify.log.error(error, 'Error fetching Ollama models');
-      // Return empty list if Ollama is down, so the UI doesn't crash?
-      // Better to signal error.
-      return reply.status(502).send({ error: 'Could not connect to Ollama' });
+      fastify.log.info('Ollama not reachable or timed out, skipping.');
+      providers.push({
+        id: 'ollama',
+        name: 'Ollama (Local)',
+        models: [],
+        configured: false
+      });
     }
+
+    return { providers };
   });
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MonacoEditor from '@monaco-editor/react';
 import { useStore } from './store';
-import { handleGenerate, getModels } from './api';
+import { handleGenerate, getProviders } from './api';
 
 const Editor: React.FC = () => {
   const {
@@ -11,6 +11,8 @@ const Editor: React.FC = () => {
     setSelectedModel,
     provider,
     setProvider,
+    availableProviders,
+    setAvailableProviders,
     isLoading,
     setIsLoading,
     setStlData,
@@ -25,27 +27,45 @@ const Editor: React.FC = () => {
     addToHistory,
   } = useStore();
   const [editedCode, setEditedCode] = useState<string | null>(null);
-  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
 
   useEffect(() => {
     setEditedCode(null);
   }, [generatedCode]);
 
   useEffect(() => {
-    if (provider === 'ollama') {
-      getModels().then((models) => {
-        setOllamaModels(models);
-        // If current selected model is not in list (or is a gemini one), select first available
-        if (models.length > 0 && (!selectedModel || selectedModel.startsWith('gemini'))) {
-          setSelectedModel(models[0]);
-        } else if (models.length === 0) {
-           // Fallback if no models found or connection failed
-           // Keep input as text or maybe show error? 
-           // For now, we will handle empty list in render
+    getProviders().then((providers) => {
+      setAvailableProviders(providers);
+      
+      const configuredProviders = providers.filter(p => p.configured);
+      
+      if (configuredProviders.length === 0) return;
+
+      const currentProviderConfigured = configuredProviders.find(p => p.id === provider);
+      
+      // If current provider is not configured or not set, switch to first available
+      if (!currentProviderConfigured) {
+        const firstProvider = configuredProviders[0];
+        setProvider(firstProvider.id);
+        if (firstProvider.models.length > 0) {
+           setSelectedModel(firstProvider.models[0]);
         }
-      });
+      } else {
+        // Ensure selected model belongs to current provider
+        if (currentProviderConfigured.models.length > 0 && !currentProviderConfigured.models.includes(selectedModel)) {
+             setSelectedModel(currentProviderConfigured.models[0]);
+        }
+      }
+    });
+  }, []);
+
+  const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newProviderId = e.target.value;
+    setProvider(newProviderId);
+    const newProvider = availableProviders.find(p => p.id === newProviderId);
+    if (newProvider && newProvider.models.length > 0) {
+      setSelectedModel(newProvider.models[0]);
     }
-  }, [provider, setSelectedModel, selectedModel]);
+  };
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -67,10 +87,11 @@ const Editor: React.FC = () => {
   };
 
   const onGenerate = () => {
+    // Cast provider to expected type for now, or update handleGenerate signature
     handleGenerate(
       prompt,
       selectedModel,
-      provider,
+      provider as 'gemini' | 'ollama', 
       setIsLoading,
       setStlData,
       setGeneratedCode,
@@ -103,6 +124,9 @@ const Editor: React.FC = () => {
     // toast.success('Code copied to clipboard!');
   };
 
+  const currentProvider = availableProviders.find(p => p.id === provider);
+  const configuredProviders = availableProviders.filter(p => p.configured);
+
   return (
     <section className="editor-pane">
       <h2>1. Describe Your Model</h2>
@@ -123,41 +147,43 @@ const Editor: React.FC = () => {
       <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
         <button 
           onClick={() => onGenerate()} 
-          disabled={isLoading}
+          disabled={isLoading || configuredProviders.length === 0}
           className={isLoading ? 'loading-pulse' : ''}
         >
           {isLoading ? 'Generating...' : 'Generate'}
         </button>
-        <select value={provider} onChange={(e) => setProvider(e.target.value as 'gemini' | 'ollama')} disabled={isLoading}>
-          <option value="gemini">Gemini</option>
-          <option value="ollama">Ollama (Local)</option>
-        </select>
-        {provider === 'gemini' ? (
-          <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} disabled={isLoading}>
-            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-            <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
-            <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
-          </select>
+        
+        {configuredProviders.length > 0 ? (
+          <>
+            <select value={provider} onChange={handleProviderChange} disabled={isLoading}>
+              {configuredProviders.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            
+            {currentProvider && (
+              currentProvider.models.length > 0 ? (
+                <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} disabled={isLoading}>
+                  {currentProvider.models.map((model) => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </select>
+              ) : (
+                <input 
+                    type="text" 
+                    value={selectedModel} 
+                    onChange={(e) => setSelectedModel(e.target.value)} 
+                    placeholder="Model name"
+                    disabled={isLoading}
+                    style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }} 
+                />
+              )
+            )}
+          </>
         ) : (
-          ollamaModels.length > 0 ? (
-             <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} disabled={isLoading}>
-               {ollamaModels.map((model) => (
-                 <option key={model} value={model}>{model}</option>
-               ))}
-             </select>
-          ) : (
-            <input 
-                type="text" 
-                value={selectedModel} 
-                onChange={(e) => setSelectedModel(e.target.value)} 
-                placeholder="Model name (e.g. codellama)"
-                disabled={isLoading}
-                style={{ padding: '0.4rem', borderRadius: '4px', border: '1px solid #ccc' }} 
-            />
-          )
+          <span style={{ color: 'red', fontSize: '0.9rem' }}>No AI providers configured. Check .env or TODO.md</span>
         )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label>Style:</label>
           <select value={codeStyle} onChange={(e) => setCodeStyle(e.target.value)} disabled={isLoading}>

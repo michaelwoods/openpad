@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateCode, renderModel, getFilename, getModels } from './api';
+import { generateCode, renderModel, getFilename, getProviders } from './api';
 import { server } from './mocks/server';
 import { http, HttpResponse } from 'msw';
 
@@ -91,16 +91,18 @@ describe('API Service', () => {
       });
   });
 
-  describe('getModels', () => {
-    it('returns models list on success', async () => {
+  describe('getProviders', () => {
+    it('returns providers list on success', async () => {
       server.use(
         http.get('/api/models', () => {
-          return HttpResponse.json({ models: ['model1', 'model2'] });
+          return HttpResponse.json({ 
+            providers: [{ id: 'gemini', name: 'Gemini', models: ['gemini-pro'], configured: true }] 
+          });
         })
       );
 
-      const models = await getModels();
-      expect(models).toEqual(['model1', 'model2']);
+      const providers = await getProviders();
+      expect(providers).toEqual([{ id: 'gemini', name: 'Gemini', models: ['gemini-pro'], configured: true }]);
     });
 
     it('returns empty array on failure', async () => {
@@ -110,8 +112,8 @@ describe('API Service', () => {
         })
       );
 
-      const models = await getModels();
-      expect(models).toEqual([]);
+      const providers = await getProviders();
+      expect(providers).toEqual([]);
     });
   });
 });

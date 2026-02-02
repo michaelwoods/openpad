@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { Provider } from './api';
 
 export interface HistoryItem {
   id: string;
@@ -20,7 +21,8 @@ interface AppState {
   showAbout: boolean;
   showHistory: boolean;
   selectedModel: string;
-  provider: 'gemini' | 'ollama';
+  provider: string;
+  availableProviders: Provider[];
   codeStyle: string;
   attachment: string | null;
   history: HistoryItem[];
@@ -33,7 +35,8 @@ interface AppState {
   setShowAbout: (showAbout: boolean) => void;
   setShowHistory: (showHistory: boolean) => void;
   setSelectedModel: (selectedModel: string) => void;
-  setProvider: (provider: 'gemini' | 'ollama') => void;
+  setProvider: (provider: string) => void;
+  setAvailableProviders: (availableProviders: Provider[]) => void;
   setCodeStyle: (codeStyle: string) => void;
   setAttachment: (attachment: string | null) => void;
   setPreviewColor: (previewColor: string) => void;
@@ -54,6 +57,7 @@ export const useStore = create<AppState>()(
       showHistory: false,
       selectedModel: 'gemini-2.5-flash',
       provider: 'gemini',
+      availableProviders: [],
       codeStyle: 'Default',
       attachment: null,
       history: [],
@@ -67,6 +71,7 @@ export const useStore = create<AppState>()(
       setShowHistory: (showHistory) => set({ showHistory }),
       setSelectedModel: (selectedModel) => set({ selectedModel }),
       setProvider: (provider) => set({ provider }),
+      setAvailableProviders: (availableProviders) => set({ availableProviders }),
       setCodeStyle: (codeStyle) => set({ codeStyle }),
       setAttachment: (attachment) => set({ attachment }),
       setPreviewColor: (previewColor) => set({ previewColor }),

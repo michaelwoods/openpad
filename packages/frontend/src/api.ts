@@ -66,16 +66,23 @@ export const downloadFile = (filename: string, stlData: string, format: string) 
   document.body.removeChild(link);
 };
 
-export const getModels = async (): Promise<string[]> => {
+export interface Provider {
+  id: string;
+  name: string;
+  models: string[];
+  configured: boolean;
+}
+
+export const getProviders = async (): Promise<Provider[]> => {
   try {
     const response = await fetch('/api/models');
     if (!response.ok) {
-      throw new Error('Failed to fetch models');
+      throw new Error('Failed to fetch providers');
     }
     const data = await response.json();
-    return data.models || [];
+    return data.providers || [];
   } catch (error) {
-    console.error('Error fetching models:', error);
+    console.error('Error fetching providers:', error);
     return [];
   }
 };

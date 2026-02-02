@@ -86,11 +86,11 @@ describe('Editor', () => {
     expect(handleGenerateSpy).toHaveBeenCalled();
   });
 
-  it('updates the selected model when changed in the dropdown', () => {
+  it('updates the selected model when changed in the dropdown', async () => {
     render(<Editor />);
     // Find the second combobox (the first is for model, second for style if using labels, but here we can try to find by display value or role)
     // Since there are two selects, we should be specific. The model select has 'gemini-2.5-flash' as default value.
-    const select = screen.getByDisplayValue('Gemini 2.5 Flash'); 
+    const select = await screen.findByDisplayValue('gemini-2.5-flash'); 
     fireEvent.change(select, { target: { value: 'gemini-3-pro-preview' } });
     expect(useStore.getState().selectedModel).toBe('gemini-3-pro-preview');
   });
