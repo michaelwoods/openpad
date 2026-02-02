@@ -51,6 +51,10 @@ describe('POST /api/generate', () => {
       text: 'sphere(10);',
       finishReason: 'stop',
     });
+    (llm.generateWithOpenAI as jest.Mock).mockResolvedValue({
+        text: 'cylinder(10);',
+        finishReason: 'stop',
+    });
   });
 
   test('should use Gemini by default', async () => {
@@ -105,6 +109,34 @@ describe('POST /api/generate', () => {
     expect(llm.generateWithOllama).toHaveBeenCalledWith(expect.objectContaining({
       prompt: expect.stringContaining('a 20mm sphere'),
       model: 'codellama',
+    }));
+  });
+
+  test('should use OpenAI when provider is openai', async () => {
+    const app = await build();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/generate',
+      payload: {
+        prompt: 'a cylinder',
+        provider: 'openai',
+        model: 'gpt-4o',
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.payload)).toEqual({
+      code: 'cylinder(10);',
+      stl: Buffer.from('mock-stl-data').toString('base64'),
+      generationInfo: {
+        finishReason: 'stop',
+      },
+    });
+
+    expect(llm.generateWithOpenAI).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.stringContaining('a cylinder'),
+      model: 'gpt-4o',
     }));
   });
 

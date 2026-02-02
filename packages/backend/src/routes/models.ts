@@ -26,7 +26,16 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
       configured: !!geminiKey && geminiKey.length > 0
     });
 
-    // 2. Ollama Provider
+    // 2. OpenAI Provider
+    const openaiKey = process.env.OPENAI_API_KEY;
+    providers.push({
+      id: 'openai',
+      name: 'OpenAI',
+      models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
+      configured: !!openaiKey && openaiKey.length > 0
+    });
+
+    // 3. Ollama Provider
     const ollamaHost = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
     try {
       const controller = new AbortController();

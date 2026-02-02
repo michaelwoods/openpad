@@ -57,6 +57,24 @@ describe('GET /api/models', () => {
     expect(gemini.configured).toBe(false);
   });
 
+  it('should return OpenAI provider if API key is set', async () => {
+    process.env.OPENAI_API_KEY = 'test-openai-key';
+    
+    (global.fetch as jest.Mock).mockRejectedValue(new Error('Connection failed'));
+
+    const app = await build();
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/models',
+    });
+
+    const payload = JSON.parse(res.payload);
+    const openai = payload.providers.find((p: any) => p.id === 'openai');
+    expect(openai).toBeDefined();
+    expect(openai.configured).toBe(true);
+    expect(openai.models).toContain('gpt-4o');
+  });
+
   it('should return Ollama provider with models if fetch succeeds', async () => {
     delete process.env.GEMINI_API_KEY;
     

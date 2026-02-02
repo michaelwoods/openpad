@@ -6,13 +6,13 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { promisify } from 'util';
 import { basePrompt, modularPrompt, attachmentPrompt } from '../prompts';
-import { generateWithGemini, generateWithOllama } from '../llm';
+import { generateWithGemini, generateWithOllama, generateWithOpenAI } from '../llm';
 
 const execFileAsync = promisify(execFile);
 
 const generateRequestBody = z.object({
   prompt: z.string().min(1).max(5000),
-  provider: z.enum(['gemini', 'ollama']).optional().default('gemini'),
+  provider: z.enum(['gemini', 'ollama', 'openai']).optional().default('gemini'),
   model: z.string().optional(),
   style: z.enum(['Default', 'Modular']).optional(),
   attachment: z.string().optional(),
@@ -57,6 +57,17 @@ ${attachment}
           prompt: fullPrompt,
           model: modelName,
           apiHost: process.env.OLLAMA_HOST
+        });
+        code = result.text;
+        generationInfo = {
+          finishReason: result.finishReason,
+        };
+      } else if (provider === 'openai') {
+        const modelName = selectedModel || 'gpt-4o';
+        const result = await generateWithOpenAI({
+          prompt: fullPrompt,
+          model: modelName,
+          apiKey: process.env.OPENAI_API_KEY
         });
         code = result.text;
         generationInfo = {

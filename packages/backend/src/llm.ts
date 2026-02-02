@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
 export interface GenerationResult {
   text: string;
@@ -9,7 +10,7 @@ export interface GenerationResult {
 export interface GenerateOptions {
   prompt: string;
   model: string;
-  apiKey?: string; // For Gemini
+  apiKey?: string; // For Gemini or OpenAI
   apiHost?: string; // For Ollama
 }
 
@@ -29,6 +30,25 @@ export async function generateWithGemini(options: GenerateOptions): Promise<Gene
     text: response.text(),
     finishReason: response.candidates?.[0]?.finishReason,
     safetyRatings: response.candidates?.[0]?.safetyRatings,
+  };
+}
+
+export async function generateWithOpenAI(options: GenerateOptions): Promise<GenerationResult> {
+  const { prompt, model: modelName, apiKey } = options;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not set');
+  }
+
+  const openai = new OpenAI({ apiKey });
+
+  const completion = await openai.chat.completions.create({
+    messages: [{ role: 'user', content: prompt }],
+    model: modelName,
+  });
+
+  return {
+    text: completion.choices[0].message.content || '',
+    finishReason: completion.choices[0].finish_reason,
   };
 }
 

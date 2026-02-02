@@ -1,7 +1,7 @@
 # Low Priority Tasks - TODO
 
 ## 🔧 Additional AI Backends
-- [ ] **OpenAI Integration**
+- [x] **OpenAI Integration**
   - Add OpenAI API support (GPT-4o, GPT-4o-mini)
   - Create OpenAI provider hook similar to useGemini
   - Add OpenAI configuration panel
