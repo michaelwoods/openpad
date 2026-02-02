@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
+import OpenAI from 'openai';
 
 interface Provider {
   id: string;
@@ -29,11 +30,34 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
     // 2. OpenAI Provider
     const openaiKey = process.env.OPENAI_API_KEY;
     const openaiBase = process.env.OPENAI_BASE_URL;
+    const isOpenAIConfigured = (!!openaiKey && openaiKey.length > 0) || (!!openaiBase && openaiBase.length > 0);
+    
+    let openaiModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo']; // Default fallback
+
+    if (isOpenAIConfigured) {
+      try {
+        const openai = new OpenAI({
+          apiKey: openaiKey || 'dummy-key',
+          baseURL: openaiBase,
+        });
+        const list = await openai.models.list();
+        // Filter for chat models or just return all? OpenAI returns many.
+        // Let's filter for commonly used ones or those containing 'gpt' or 'o1' to reduce noise, 
+        // but user might use localAI with arbitrary names.
+        // Let's return all ID's sorted.
+        if (list.data && list.data.length > 0) {
+            openaiModels = list.data.map(m => m.id).sort();
+        }
+      } catch (error) {
+        fastify.log.error(error, 'Failed to fetch OpenAI models, using fallback.');
+      }
+    }
+
     providers.push({
       id: 'openai',
       name: 'OpenAI',
-      models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
-      configured: (!!openaiKey && openaiKey.length > 0) || (!!openaiBase && openaiBase.length > 0)
+      models: openaiModels,
+      configured: isOpenAIConfigured
     });
 
     // 3. Ollama Provider

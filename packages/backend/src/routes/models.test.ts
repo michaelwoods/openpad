@@ -3,6 +3,24 @@ import { build } from '../../test/helper';
 // Mock fetch for Ollama
 global.fetch = jest.fn();
 
+// Mock OpenAI
+jest.mock('openai', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      models: {
+        list: jest.fn().mockResolvedValue({
+          data: [{ id: 'gpt-dynamic-1' }, { id: 'gpt-dynamic-2' }]
+        })
+      },
+      chat: {
+        completions: {
+          create: jest.fn()
+        }
+      }
+    };
+  });
+});
+
 describe('GET /api/models', () => {
   const originalEnv = process.env;
 
@@ -72,7 +90,7 @@ describe('GET /api/models', () => {
     const openai = payload.providers.find((p: any) => p.id === 'openai');
     expect(openai).toBeDefined();
     expect(openai.configured).toBe(true);
-    expect(openai.models).toContain('gpt-4o');
+    expect(openai.models).toEqual(['gpt-dynamic-1', 'gpt-dynamic-2']);
   });
 
   it('should return Ollama provider with models if fetch succeeds', async () => {
