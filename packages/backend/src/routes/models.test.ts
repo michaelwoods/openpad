@@ -118,6 +118,36 @@ describe('GET /api/models', () => {
     expect(ollama.models).toEqual(['llama3:latest', 'codellama:latest']);
   });
 
+  it('should use OLLAMA_HOST and OLLAMA_API_KEY for fetching models', async () => {
+    process.env.OLLAMA_HOST = 'http://custom-ollama:11434';
+    process.env.OLLAMA_API_KEY = 'ollama-secret';
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        models: [{ name: 'custom-model' }],
+      }),
+    });
+
+    const app = await build();
+    await app.inject({
+      method: 'GET',
+      url: '/api/models',
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://custom-ollama:11434/api/tags',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'Authorization': 'Bearer ollama-secret'
+        })
+      })
+    );
+
+    delete process.env.OLLAMA_HOST;
+    delete process.env.OLLAMA_API_KEY;
+  });
+
   it('should handle Ollama fetch errors gracefully', async () => {
     delete process.env.GEMINI_API_KEY;
     
