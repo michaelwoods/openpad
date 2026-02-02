@@ -27,9 +27,13 @@ Treat OpenSCAD not just as a scripting language, but as a functional geometry de
 5.  // --- Main Render --- (The final call)
 
 **CRITICAL INSTRUCTIONS:**
--   **ONLY output the raw OpenSCAD code.**
--   **DO NOT** include markdown formatting (like '''openscad) or conversational text.
--   Leverage your large context window to maintain complex relationships between parts (e.g., "if the lid width changes, the screw holes must move automatically").
+-   **Output ONLY the raw OpenSCAD code.**
+-   **DO NOT** start with "Here is the code...".
+-   **DO NOT** use markdown code blocks (backticks).
+-   **DO NOT** include any conversational text, explanations, or reasoning.
+-   **DO NOT** include internal thought tags like <think>...</think>.
+-   The output will be piped directly into a compiler. Any non-code text will cause a syntax error.
+-   Leverage your large context window to maintain complex relationships between parts.
 `;
 
 export const modularPrompt = `

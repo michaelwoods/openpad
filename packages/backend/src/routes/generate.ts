@@ -22,6 +22,22 @@ type GenerateRequest = FastifyRequest<{ Body: z.infer<typeof generateRequestBody
 
 const maskKey = (key?: string) => key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : 'undefined';
 
+export const extractCode = (text: string): string => {
+  // 1. Remove <think>...</think> tags (dotAll to handle newlines)
+  let cleanText = text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+  // 2. Extract from markdown code blocks if present
+  // Matches ```[openscad|scad]? ... ```
+  // We use [\s\S]*? to match across newlines non-greedily
+  const match = cleanText.match(/```(?:openscad|scad)?\n?([\s\S]*?)```/i);
+  if (match) {
+    return match[1].trim();
+  }
+
+  // 3. If no code blocks, return the cleaned text
+  return cleanText;
+};
+
 export default async function (fastify: FastifyInstance, options: FastifyPluginOptions) {
   fastify.post('/generate', async (request: GenerateRequest, reply: FastifyReply) => {
     let tempDir: string | undefined;
@@ -105,10 +121,8 @@ ${attachment}
         };
       }
 
-      const match = code.match(/```openscad\n([\s\S]*?)```/);
-      if (match) {
-        code = match[1];
-      }
+      // Use the new extraction logic
+      code = extractCode(code);
 
       fastify.log.info({ reqId: request.id }, `Generated code: ${code}`);
 
