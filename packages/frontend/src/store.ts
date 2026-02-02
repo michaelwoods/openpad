@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Provider } from './api';
+import type { Provider } from './api';
 
 export interface HistoryItem {
   id: string;
