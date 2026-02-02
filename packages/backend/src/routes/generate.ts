@@ -20,6 +20,8 @@ const generateRequestBody = z.object({
 
 type GenerateRequest = FastifyRequest<{ Body: z.infer<typeof generateRequestBody> }>;
 
+const maskKey = (key?: string) => key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : 'undefined';
+
 export default async function (fastify: FastifyInstance, options: FastifyPluginOptions) {
   fastify.post('/generate', async (request: GenerateRequest, reply: FastifyReply) => {
     let tempDir: string | undefined;
@@ -46,7 +48,20 @@ ${attachment}
         **User Request:** "${prompt}"
       `;
 
-      fastify.log.info({ reqId: request.id }, `Generating code for prompt: ${prompt} using ${provider}`);
+      fastify.log.info({ 
+        reqId: request.id, 
+        provider,
+        model: selectedModel,
+        style,
+        hasAttachment: !!attachment,
+        config: {
+          ollamaHost: provider === 'ollama' ? process.env.OLLAMA_HOST : undefined,
+          openaiBase: provider === 'openai' ? process.env.OPENAI_BASE_URL : undefined,
+          geminiKey: provider === 'gemini' ? maskKey(process.env.GEMINI_API_KEY) : undefined,
+          openaiKey: provider === 'openai' ? maskKey(process.env.OPENAI_API_KEY) : undefined,
+          ollamaKey: provider === 'ollama' ? maskKey(process.env.OLLAMA_API_KEY) : undefined,
+        }
+      }, `Generating code for prompt: ${prompt}`);
 
       let code = '';
       let generationInfo = {};

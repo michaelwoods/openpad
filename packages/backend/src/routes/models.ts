@@ -8,6 +8,8 @@ interface Provider {
   configured: boolean;
 }
 
+const maskKey = (key?: string) => key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : 'undefined';
+
 export default async function (fastify: FastifyInstance, options: FastifyPluginOptions) {
   fastify.get('/models', async (request: FastifyRequest, reply: FastifyReply) => {
     const providers: Provider[] = [];
@@ -48,8 +50,8 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
         if (list.data && list.data.length > 0) {
             openaiModels = list.data.map(m => m.id).sort();
         }
-      } catch (error) {
-        fastify.log.error(error, 'Failed to fetch OpenAI models, using fallback.');
+      } catch (error: any) {
+        fastify.log.error(error, `Failed to fetch OpenAI models (BaseURL: ${openaiBase || 'default'}, Key: ${maskKey(openaiKey)}), using fallback.`);
       }
     }
 
@@ -89,7 +91,7 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
           configured: true
         });
       } else {
-        fastify.log.warn(`Ollama reachable but returned ${response.status}`);
+        fastify.log.warn(`Ollama reachable but returned ${response.status} (Host: ${ollamaHost})`);
         providers.push({
           id: 'ollama',
           name: 'Ollama (Local)',
@@ -97,8 +99,8 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
           configured: false
         });
       }
-    } catch (error) {
-      fastify.log.info('Ollama not reachable or timed out, skipping.');
+    } catch (error: any) {
+      fastify.log.info(`Ollama not reachable or timed out (Host: ${ollamaHost}): ${error.message}, skipping.`);
       providers.push({
         id: 'ollama',
         name: 'Ollama (Local)',

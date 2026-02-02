@@ -21,17 +21,21 @@ export async function generateWithGemini(options: GenerateOptions): Promise<Gene
     throw new Error('GEMINI_API_KEY is not set');
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: modelName });
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: modelName });
 
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  
-  return {
-    text: response.text(),
-    finishReason: response.candidates?.[0]?.finishReason,
-    safetyRatings: response.candidates?.[0]?.safetyRatings,
-  };
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    
+    return {
+      text: response.text(),
+      finishReason: response.candidates?.[0]?.finishReason,
+      safetyRatings: response.candidates?.[0]?.safetyRatings,
+    };
+  } catch (error: any) {
+    throw new Error(`Gemini API Error: ${error.message}`);
+  }
 }
 
 export async function generateWithOpenAI(options: GenerateOptions): Promise<GenerationResult> {
@@ -45,15 +49,19 @@ export async function generateWithOpenAI(options: GenerateOptions): Promise<Gene
     baseURL: baseUrl 
   });
 
-  const completion = await openai.chat.completions.create({
-    messages: [{ role: 'user', content: prompt }],
-    model: modelName,
-  });
+  try {
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: modelName,
+    });
 
-  return {
-    text: completion.choices[0].message.content || '',
-    finishReason: completion.choices[0].finish_reason,
-  };
+    return {
+      text: completion.choices[0].message.content || '',
+      finishReason: completion.choices[0].finish_reason,
+    };
+  } catch (error: any) {
+    throw new Error(`OpenAI Error (BaseURL: ${baseUrl || 'default'}): ${error.message}`);
+  }
 }
 
 export async function generateWithOllama(options: GenerateOptions): Promise<GenerationResult> {
@@ -65,26 +73,30 @@ export async function generateWithOllama(options: GenerateOptions): Promise<Gene
     headers['Authorization'] = `Bearer ${apiKey}`;
   }
 
-  // Use /api/generate for single prompt generation
-  const response = await fetch(`${host}/api/generate`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model,
-      prompt,
-      stream: false, // We wait for full response
-    }),
-  });
+  try {
+    // Use /api/generate for single prompt generation
+    const response = await fetch(`${host}/api/generate`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model,
+        prompt,
+        stream: false, // We wait for full response
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data: any = await response.json();
+    
+    return {
+      text: data.response,
+      finishReason: data.done_reason,
+      // Ollama doesn't have safety ratings in the same way
+    };
+  } catch (error: any) {
+    throw new Error(`Ollama Error (Host: ${host}): ${error.message}`);
   }
-
-  const data: any = await response.json();
-  
-  return {
-    text: data.response,
-    finishReason: data.done_reason,
-    // Ollama doesn't have safety ratings in the same way
-  };
 }
