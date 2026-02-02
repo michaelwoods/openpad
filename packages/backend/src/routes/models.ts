@@ -28,20 +28,31 @@ export default async function (fastify: FastifyInstance, options: FastifyPluginO
 
     // 2. OpenAI Provider
     const openaiKey = process.env.OPENAI_API_KEY;
+    const openaiBase = process.env.OPENAI_BASE_URL;
     providers.push({
       id: 'openai',
       name: 'OpenAI',
       models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
-      configured: !!openaiKey && openaiKey.length > 0
+      configured: (!!openaiKey && openaiKey.length > 0) || (!!openaiBase && openaiBase.length > 0)
     });
 
     // 3. Ollama Provider
     const ollamaHost = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
+    const ollamaKey = process.env.OLLAMA_API_KEY;
+    
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout for local check
 
-      const response = await fetch(`${ollamaHost}/api/tags`, { signal: controller.signal });
+      const headers: Record<string, string> = {};
+      if (ollamaKey) {
+        headers['Authorization'] = `Bearer ${ollamaKey}`;
+      }
+
+      const response = await fetch(`${ollamaHost}/api/tags`, { 
+        signal: controller.signal,
+        headers 
+      });
       clearTimeout(timeoutId);
 
       if (response.ok) {

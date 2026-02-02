@@ -140,6 +140,40 @@ describe('POST /api/generate', () => {
     }));
   });
 
+  test('should pass custom base URL to OpenAI if configured', async () => {
+    process.env.OPENAI_BASE_URL = 'http://my-local-ai:8080/v1';
+    
+    const app = await build();
+    await app.inject({
+      method: 'POST',
+      url: '/api/generate',
+      payload: { prompt: 'test', provider: 'openai' },
+    });
+    
+    expect(llm.generateWithOpenAI).toHaveBeenCalledWith(expect.objectContaining({
+      baseUrl: 'http://my-local-ai:8080/v1',
+    }));
+    
+    delete process.env.OPENAI_BASE_URL;
+  });
+
+  test('should pass custom API key to Ollama if configured', async () => {
+    process.env.OLLAMA_API_KEY = 'ollama-secret';
+    
+    const app = await build();
+    await app.inject({
+      method: 'POST',
+      url: '/api/generate',
+      payload: { prompt: 'test', provider: 'ollama' },
+    });
+    
+    expect(llm.generateWithOllama).toHaveBeenCalledWith(expect.objectContaining({
+      apiKey: 'ollama-secret',
+    }));
+    
+    delete process.env.OLLAMA_API_KEY;
+  });
+
   test('should handle OpenSCAD failure', async () => {
     const app = await build();
     

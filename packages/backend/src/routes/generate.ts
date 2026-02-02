@@ -56,7 +56,8 @@ ${attachment}
         const result = await generateWithOllama({
           prompt: fullPrompt,
           model: modelName,
-          apiHost: process.env.OLLAMA_HOST
+          apiHost: process.env.OLLAMA_HOST,
+          apiKey: process.env.OLLAMA_API_KEY
         });
         code = result.text;
         generationInfo = {
@@ -67,7 +68,8 @@ ${attachment}
         const result = await generateWithOpenAI({
           prompt: fullPrompt,
           model: modelName,
-          apiKey: process.env.OPENAI_API_KEY
+          apiKey: process.env.OPENAI_API_KEY,
+          baseUrl: process.env.OPENAI_BASE_URL
         });
         code = result.text;
         generationInfo = {
