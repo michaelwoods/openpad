@@ -1,64 +1,82 @@
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
-export const generateCode = async (prompt: string, model: string, style: string, attachment?: string | null, provider: 'gemini' | 'ollama' = 'gemini') => {
+export const generateCode = async (
+  prompt: string,
+  model: string,
+  style: string,
+  attachment?: string | null,
+  provider: string = "gemini",
+) => {
   const chainOfThought = `You are an expert OpenSCAD modeler. I want to create a detailed model. First, break down the model into its main components. Then, for each component, describe how you would create it using OpenSCAD. Finally, write the OpenSCAD code to generate the entire model. The user's request is: ${prompt}`;
 
-  const body: { prompt: string; model: string; style: string; provider: string; attachment?: string } = { prompt: chainOfThought, model, style, provider };
+  const body: {
+    prompt: string;
+    model: string;
+    style: string;
+    provider: string;
+    attachment?: string;
+  } = { prompt: chainOfThought, model, style, provider };
   if (attachment) {
     body.attachment = attachment;
   }
 
-  const response = await fetch('/api/generate', {
-    method: 'POST',
+  const response = await fetch("/api/generate", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
   });
 
   const data = await response.json();
   if (!response.ok) {
-    const errorDetails = data.details || `HTTP error! status: ${response.status}`;
+    const errorDetails =
+      data.details || `HTTP error! status: ${response.status}`;
     throw new Error(errorDetails);
   }
   return data;
 };
 
 export const renderModel = async (code: string) => {
-  const response = await fetch('/api/render', {
-    method: 'POST',
+  const response = await fetch("/api/render", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ code }),
   });
 
   const result = await response.json();
   if (!response.ok) {
-    const errorDetails = result.details || `HTTP error! status: ${response.status}`;
+    const errorDetails =
+      result.details || `HTTP error! status: ${response.status}`;
     throw new Error(errorDetails);
   }
   return result;
 };
 
 export const getFilename = async (prompt: string) => {
-  const response = await fetch('/api/filename', {
-    method: 'POST',
+  const response = await fetch("/api/filename", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ prompt }),
   });
 
   const data = await response.json();
   if (!data.filename) {
-    throw new Error('Could not generate filename.');
+    throw new Error("Could not generate filename.");
   }
   return data.filename;
 };
 
-export const downloadFile = (filename: string, stlData: string, format: string) => {
-  const link = document.createElement('a');
+export const downloadFile = (
+  filename: string,
+  stlData: string,
+  format: string,
+) => {
+  const link = document.createElement("a");
   link.href = `data:application/octet-stream;base64,${stlData}`;
   link.download = `${filename}.${format}`;
   document.body.appendChild(link);
@@ -71,18 +89,20 @@ export interface Provider {
   name: string;
   models: string[];
   configured: boolean;
+  baseUrl?: string;
+  headers?: Record<string, string>;
 }
 
 export const getProviders = async (): Promise<Provider[]> => {
   try {
-    const response = await fetch('/api/models');
+    const response = await fetch("/api/models");
     if (!response.ok) {
-      throw new Error('Failed to fetch providers');
+      throw new Error("Failed to fetch providers");
     }
     const data = await response.json();
     return data.providers || [];
   } catch (error) {
-    console.error('Error fetching providers:', error);
+    console.error("Error fetching providers:", error);
     return [];
   }
 };
@@ -90,7 +110,7 @@ export const getProviders = async (): Promise<Provider[]> => {
 export const handleGenerate = async (
   prompt: string,
   selectedModel: string,
-  provider: 'gemini' | 'ollama',
+  provider: string,
   setIsLoading: (isLoading: boolean) => void,
   setStlData: (stlData: string | null) => void,
   setGeneratedCode: (generatedCode: string) => void,
@@ -98,7 +118,7 @@ export const handleGenerate = async (
   editedCode?: string,
   style?: string,
   attachment?: string | null,
-  onSuccess?: (code: string) => void
+  onSuccess?: (code: string) => void,
 ) => {
   setIsLoading(true);
   setStlData(null);
@@ -107,16 +127,24 @@ export const handleGenerate = async (
   const promise = (async () => {
     const { code, generationInfo } = editedCode
       ? { code: editedCode, generationInfo: null }
-      : await generateCode(prompt, selectedModel, style || 'Default', attachment, provider);
-    
+      : await generateCode(
+          prompt,
+          selectedModel,
+          style || "Default",
+          attachment,
+          provider,
+        );
+
     setGeneratedCode(code);
     const { stl } = await renderModel(code);
-    
+
     return { code, stl, generationInfo };
   })();
 
   await toast.promise(promise, {
-    loading: editedCode ? 'Regenerating model from your code...' : `Generating model with ${selectedModel}...`,
+    loading: editedCode
+      ? "Regenerating model from your code..."
+      : `Generating model with ${selectedModel}...`,
     success: (data) => {
       setStlData(data.stl);
       if (data.generationInfo) {
@@ -126,7 +154,7 @@ export const handleGenerate = async (
       if (onSuccess) {
         onSuccess(data.code);
       }
-      return 'Successfully generated!';
+      return "Successfully generated!";
     },
     error: (err) => {
       setIsLoading(false);
@@ -135,7 +163,11 @@ export const handleGenerate = async (
   });
 };
 
-export const handleDownload = async (prompt: string, stlData: string | null, format: string) => {
+export const handleDownload = async (
+  prompt: string,
+  stlData: string | null,
+  format: string,
+) => {
   if (!stlData) return;
 
   const promise = getFilename(prompt).then((filename) => {
@@ -143,8 +175,8 @@ export const handleDownload = async (prompt: string, stlData: string | null, for
   });
 
   await toast.promise(promise, {
-    loading: 'Generating filename...',
-    success: 'Download started!',
-    error: 'Could not generate filename.',
+    loading: "Generating filename...",
+    success: "Download started!",
+    error: "Could not generate filename.",
   });
 };
