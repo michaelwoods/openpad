@@ -1,14 +1,15 @@
-import { Suspense, useEffect } from 'react';
-import { Canvas, useLoader } from '@react-three/fiber';
-import { OrbitControls, Center, Html } from '@react-three/drei';
-import { STLLoader, AMFLoader, ThreeMFLoader } from 'three-stdlib';
-import toast from 'react-hot-toast';
+import { Suspense, useEffect } from "react";
+import { Canvas, useLoader } from "@react-three/fiber";
+import { OrbitControls, Center, Html } from "@react-three/drei";
+import { STLLoader, AMFLoader, ThreeMFLoader } from "three-stdlib";
+import { BufferGeometry } from "three";
+import toast from "react-hot-toast";
 
 // Fallback component that shows a toast only if loading is slow
 function SlowLoadFallback() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      toast('Rendering is taking a while...');
+      toast("Rendering is taking a while...");
     }, 1000); // 1 second delay
 
     return () => clearTimeout(timer);
@@ -18,24 +19,32 @@ function SlowLoadFallback() {
 }
 
 // Model component now uses useLoader for async parsing
-function Model({ url, format, color }: { url: string, format: string, color?: string }) {
+function Model({
+  url,
+  format,
+  color,
+}: {
+  url: string;
+  format: string;
+  color?: string;
+}) {
   let loader;
   switch (format) {
-    case 'amf':
+    case "amf":
       loader = AMFLoader;
       break;
-    case '3mf':
+    case "3mf":
       loader = ThreeMFLoader;
       break;
     default:
       loader = STLLoader;
       break;
   }
-  const geom = useLoader(loader, url);
+  const geom = useLoader(loader, url) as unknown as BufferGeometry;
 
   return (
     <mesh geometry={geom}>
-      <meshStandardMaterial color={color || 'orange'} vertexColors={!color} />
+      <meshStandardMaterial color={color || "orange"} vertexColors={!color} />
     </mesh>
   );
 }
@@ -51,7 +60,10 @@ export default function Viewer({ stl, format, color }: ViewerProps) {
   const dataUrl = stl ? `data:application/octet-stream;base64,${stl}` : null;
 
   return (
-    <Canvas style={{ height: '100%', width: '100%' }} camera={{ position: [50, 50, 50], fov: 50 }}>
+    <Canvas
+      style={{ height: "100%", width: "100%" }}
+      camera={{ position: [50, 50, 50], fov: 50 }}
+    >
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
