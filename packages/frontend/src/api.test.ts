@@ -8,10 +8,13 @@ describe("API Service", () => {
 
   describe("generateCode", () => {
     it("sends correct request and returns data", async () => {
-      let capturedBody: { prompt?: string; code?: string };
+      let capturedBody: { prompt?: string; code?: string } | undefined;
       server.use(
         http.post("/api/generate", async ({ request }) => {
-          capturedBody = await request.json();
+          capturedBody = (await request.json()) as {
+            prompt?: string;
+            code?: string;
+          };
           return HttpResponse.json({
             code: "cube(10);",
             stl: "base64",
@@ -57,10 +60,13 @@ describe("API Service", () => {
 
   describe("renderModel", () => {
     it("sends correct request and returns data", async () => {
-      let capturedBody: { prompt?: string; code?: string };
+      let capturedBody: { prompt?: string; code?: string } | undefined;
       server.use(
         http.post("/api/render", async ({ request }) => {
-          capturedBody = await request.json();
+          capturedBody = (await request.json()) as {
+            prompt?: string;
+            code?: string;
+          };
           return HttpResponse.json({ stl: "base64" });
         }),
       );
@@ -87,10 +93,13 @@ describe("API Service", () => {
 
   describe("getFilename", () => {
     it("returns filename on success", async () => {
-      let capturedBody: { prompt?: string; code?: string };
+      let capturedBody: { prompt?: string; code?: string } | undefined;
       server.use(
         http.post("/api/filename", async ({ request }) => {
-          capturedBody = await request.json();
+          capturedBody = (await request.json()) as {
+            prompt?: string;
+            code?: string;
+          };
           return HttpResponse.json({ filename: "cool-model" });
         }),
       );

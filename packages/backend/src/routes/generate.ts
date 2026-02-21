@@ -21,7 +21,10 @@ const execFileAsync = promisify(execFile);
 
 const generateRequestBody = z.object({
   prompt: z.string().min(1).max(5000),
-  provider: z.enum(["gemini", "ollama", "openai"]).optional().default("gemini"),
+  provider: z
+    .enum(["gemini", "ollama", "openai", "openrouter", "custom"])
+    .optional()
+    .default("gemini"),
   model: z.string().optional(),
   style: z.enum(["Default", "Modular"]).optional(),
   attachment: z.string().optional(),
@@ -138,11 +141,44 @@ ${attachment}
           generationInfo = {
             finishReason: result.finishReason,
           };
-        } else if (provider === "openai") {
+        } else if (
+          provider === "openai" ||
+          provider === "openrouter" ||
+          provider === "custom"
+        ) {
+          let apiKey: string;
+          let baseUrl: string;
+          let extraHeaders: Record<string, string> = {};
+
+          if (provider === "openrouter") {
+            apiKey = process.env.OPENROUTER_API_KEY || "";
+            baseUrl = "https://openrouter.ai/api/v1";
+            extraHeaders = {
+              "HTTP-Referer":
+                process.env.OPENROUTER_REFERER || "http://localhost:5173",
+              "X-Title": process.env.OPENROUTER_TITLE || "OpenPAD",
+            };
+          } else if (provider === "custom") {
+            apiKey = process.env.CUSTOM_PROVIDER_API_KEY || "";
+            baseUrl = process.env.CUSTOM_PROVIDER_BASE_URL || "";
+            if (process.env.CUSTOM_PROVIDER_HEADERS) {
+              try {
+                extraHeaders = JSON.parse(process.env.CUSTOM_PROVIDER_HEADERS);
+              } catch {
+                // Ignore parse errors
+              }
+            }
+          } else {
+            apiKey = process.env.OPENAI_API_KEY || "";
+            baseUrl =
+              process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+          }
+
           const modelName = selectedModel || "gpt-4o";
           const result = await generateWithOpenAI({
             prompt: fullPrompt,
             model: modelName,
+            extraHeaders,
             apiKey: process.env.OPENAI_API_KEY,
             baseUrl: process.env.OPENAI_BASE_URL,
           });

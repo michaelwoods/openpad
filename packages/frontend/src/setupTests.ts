@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { vi } from "vitest";
+import { vi, beforeAll, afterEach, afterAll } from "vitest";
 import React from "react";
 import { server } from "./mocks/server";
 
@@ -32,8 +32,6 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 });
-
-import React from "react";
 
 vi.mock("@monaco-editor/react", () => ({
   default: ({
