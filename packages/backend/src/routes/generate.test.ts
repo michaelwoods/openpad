@@ -1,6 +1,7 @@
 import { build } from "../../test/helper";
 import { basePrompt, modularPrompt, attachmentPrompt } from "../../src/prompts";
 import * as llm from "../../src/llm";
+import { execFile } from "child_process";
 
 // Mock LLM service
 jest.mock("../../src/llm");
