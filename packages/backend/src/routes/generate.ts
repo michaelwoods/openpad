@@ -66,12 +66,10 @@ export default async function (
       try {
         const validation = generateRequestBody.safeParse(request.body);
         if (!validation.success) {
-          return reply
-            .status(400)
-            .send({
-              error: "Invalid request body",
-              details: validation.error.issues,
-            });
+          return reply.status(400).send({
+            error: "Invalid request body",
+            details: validation.error.issues,
+          });
         }
 
         const {
@@ -179,8 +177,8 @@ ${attachment}
             prompt: fullPrompt,
             model: modelName,
             extraHeaders,
-            apiKey: process.env.OPENAI_API_KEY,
-            baseUrl: process.env.OPENAI_BASE_URL,
+            apiKey,
+            baseUrl,
           });
           code = result.text;
           generationInfo = {
