@@ -1,7 +1,7 @@
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
-import React from 'react';
-import { server } from './mocks/server';
+import "@testing-library/jest-dom";
+import { vi } from "vitest";
+import React from "react";
+import { server } from "./mocks/server";
 
 // Establish API mocking before all tests.
 beforeAll(() => server.listen());
@@ -13,15 +13,15 @@ afterEach(() => server.resetHandlers());
 // Clean up after the tests are finished.
 afterAll(() => server.close());
 
-vi.mock('@react-three/fiber', () => ({
-  Canvas: vi.fn(() => 'canvas-mock'),
+vi.mock("@react-three/fiber", () => ({
+  Canvas: vi.fn(() => "canvas-mock"),
   useThree: vi.fn(() => ({})),
   extend: vi.fn(),
 }));
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -33,15 +33,23 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-import React from 'react';
+import React from "react";
 
-vi.mock('@monaco-editor/react', () => ({
-  default: ({ value, onChange, options }: any) => {
-    return React.createElement('textarea', {
-      'aria-label': options?.ariaLabel || "Code Editor",
+vi.mock("@monaco-editor/react", () => ({
+  default: ({
+    value,
+    onChange,
+    options,
+  }: {
+    value?: string;
+    onChange?: (value: string) => void;
+    options?: { ariaLabel?: string };
+  }) => {
+    return React.createElement("textarea", {
+      "aria-label": options?.ariaLabel || "Code Editor",
       value: value,
-      onChange: (e: any) => onChange(e.target.value),
+      onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+        onChange?.(e.target.value),
     });
   },
 }));
-

@@ -41,7 +41,7 @@ const maskKey = (key?: string) =>
 
 export const extractCode = (text: string): string => {
   // 1. Remove <think>...</think> tags (dotAll to handle newlines)
-  let cleanText = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+  const cleanText = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
 
   // 2. Extract from markdown code blocks if present
   // Matches ```[openscad|scad]? ... ```
@@ -66,10 +66,12 @@ export default async function (
       try {
         const validation = generateRequestBody.safeParse(request.body);
         if (!validation.success) {
-          return reply.status(400).send({
-            error: "Invalid request body",
-            details: validation.error.issues,
-          });
+          return reply
+            .status(400)
+            .send({
+              error: "Invalid request body",
+              details: validation.error.issues,
+            });
         }
 
         const {
@@ -176,9 +178,9 @@ ${attachment}
           const result = await generateWithOpenAI({
             prompt: fullPrompt,
             model: modelName,
-            apiKey,
-            baseUrl,
             extraHeaders,
+            apiKey: process.env.OPENAI_API_KEY,
+            baseUrl: process.env.OPENAI_BASE_URL,
           });
           code = result.text;
           generationInfo = {
