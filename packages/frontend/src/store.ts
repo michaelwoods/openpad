@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { Provider } from './api';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { Provider } from "./api";
 
 export interface HistoryItem {
   id: string;
@@ -27,6 +27,11 @@ interface AppState {
   attachment: string | null;
   history: HistoryItem[];
   previewColor: string;
+  mode: "agent" | "editor";
+  sidebarOpen: boolean;
+  mobileTab: "chat" | "preview" | "code";
+  chatMessages: ChatMessage[];
+  exportFormat: "stl" | "amf" | "3mf";
   setPrompt: (prompt: string) => void;
   setGeneratedCode: (generatedCode: string) => void;
   setStlData: (stlData: string | null) => void;
@@ -40,28 +45,48 @@ interface AppState {
   setCodeStyle: (codeStyle: string) => void;
   setAttachment: (attachment: string | null) => void;
   setPreviewColor: (previewColor: string) => void;
-  addToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
+  addToHistory: (item: Omit<HistoryItem, "id" | "timestamp">) => void;
   clearHistory: () => void;
   loadHistoryItem: (item: HistoryItem) => void;
+  setMode: (mode: "agent" | "editor") => void;
+  toggleSidebar: () => void;
+  setMobileTab: (tab: "chat" | "preview" | "code") => void;
+  addChatMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void;
+  clearChatMessages: () => void;
+  setExportFormat: (format: "stl" | "amf" | "3mf") => void;
+}
+
+export interface ChatMessage {
+  id: string;
+  timestamp: number;
+  role: "user" | "assistant";
+  content: string;
+  code?: string;
+  isThinking?: boolean;
 }
 
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
-      prompt: 'a 20mm cube with a 5mm hole in the center',
-      generatedCode: '// OpenSCAD code will appear here',
+      prompt: "a 20mm cube with a 5mm hole in the center",
+      generatedCode: "// OpenSCAD code will appear here",
       stlData: null,
       generationInfo: null,
       isLoading: false,
       showAbout: false,
       showHistory: false,
-      selectedModel: 'gemini-2.5-flash',
-      provider: 'gemini',
+      selectedModel: "gemini-2.5-flash",
+      provider: "gemini",
       availableProviders: [],
-      codeStyle: 'Default',
+      codeStyle: "Default",
       attachment: null,
       history: [],
-      previewColor: '#ffaa00',
+      previewColor: "#ffaa00",
+      mode: "agent",
+      sidebarOpen: true,
+      mobileTab: "chat",
+      chatMessages: [],
+      exportFormat: "stl",
       setPrompt: (prompt) => set({ prompt }),
       setGeneratedCode: (generatedCode) => set({ generatedCode }),
       setStlData: (stlData) => set({ stlData }),
@@ -71,7 +96,8 @@ export const useStore = create<AppState>()(
       setShowHistory: (showHistory) => set({ showHistory }),
       setSelectedModel: (selectedModel) => set({ selectedModel }),
       setProvider: (provider) => set({ provider }),
-      setAvailableProviders: (availableProviders) => set({ availableProviders }),
+      setAvailableProviders: (availableProviders) =>
+        set({ availableProviders }),
       setCodeStyle: (codeStyle) => set({ codeStyle }),
       setAttachment: (attachment) => set({ attachment }),
       setPreviewColor: (previewColor) => set({ previewColor }),
@@ -94,14 +120,37 @@ export const useStore = create<AppState>()(
           selectedModel: item.model,
           codeStyle: item.style,
           attachment: item.attachment,
-          // We don't restore stlData as it would be heavy to store; user can re-generate/render
           stlData: null,
           generationInfo: null,
         }),
+      setMode: (mode) => set({ mode }),
+      toggleSidebar: () =>
+        set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      setMobileTab: (mobileTab) => set({ mobileTab }),
+      addChatMessage: (message) =>
+        set((state) => ({
+          chatMessages: [
+            ...state.chatMessages,
+            {
+              ...message,
+              id: crypto.randomUUID(),
+              timestamp: Date.now(),
+            },
+          ],
+        })),
+      clearChatMessages: () => set({ chatMessages: [] }),
+      setExportFormat: (exportFormat) => set({ exportFormat }),
     }),
     {
-      name: 'openpad-storage',
-      partialize: (state) => ({ history: state.history, prompt: state.prompt, selectedModel: state.selectedModel, provider: state.provider, codeStyle: state.codeStyle, previewColor: state.previewColor }), // Only persist history and current form state
-    }
-  )
+      name: "openpad-storage",
+      partialize: (state) => ({
+        history: state.history,
+        prompt: state.prompt,
+        selectedModel: state.selectedModel,
+        provider: state.provider,
+        codeStyle: state.codeStyle,
+        previewColor: state.previewColor,
+      }),
+    },
+  ),
 );
