@@ -44,4 +44,41 @@ describe("App", () => {
       expect(screen.getByDisplayValue("cube(10);")).toBeInTheDocument();
     });
   });
+
+  it("toggles between Agent and Editor modes", () => {
+    render(<App />);
+
+    // Default is Agent mode
+    expect(useStore.getState().mode).toBe("agent");
+
+    // Click Editor button
+    fireEvent.click(screen.getByRole("button", { name: /Editor/i }));
+    expect(useStore.getState().mode).toBe("editor");
+
+    // Click Agent button
+    fireEvent.click(screen.getByRole("button", { name: /Agent/i }));
+    expect(useStore.getState().mode).toBe("agent");
+  });
+
+  it("shows chat interface when in Agent mode", () => {
+    render(<App />);
+
+    // In Agent mode, chat should be visible - use getAllByText for both desktop and mobile
+    expect(screen.getAllByText("AI Chat").length).toBeGreaterThan(0);
+  });
+
+  it("toggles sidebar open/closed", () => {
+    render(<App />);
+
+    // Default sidebar should be open
+    expect(useStore.getState().sidebarOpen).toBe(true);
+
+    // Click sidebar toggle
+    fireEvent.click(screen.getByRole("button", { name: "Toggle sidebar" }));
+    expect(useStore.getState().sidebarOpen).toBe(false);
+
+    // Toggle again
+    fireEvent.click(screen.getByRole("button", { name: "Toggle sidebar" }));
+    expect(useStore.getState().sidebarOpen).toBe(true);
+  });
 });

@@ -1,29 +1,85 @@
 import { useRef, useEffect } from "react";
 import { useStore } from "../../store";
+import { handleGenerate } from "../../api";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 
 export default function ChatPanel() {
-  const { chatMessages, addChatMessage, isLoading, setPrompt } = useStore();
+  const {
+    chatMessages,
+    addChatMessage,
+    updateChatMessage,
+    isLoading,
+    setIsLoading,
+    setStlData,
+    setGeneratedCode,
+    setGenerationInfo,
+    setPrompt,
+    generatedCode,
+    selectedModel,
+    provider,
+    codeStyle,
+    addToHistory,
+  } = useStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
   }, [chatMessages]);
 
-  const handleSend = (message: string) => {
+  const handleSend = async (message: string) => {
     addChatMessage({
       role: "user",
       content: message,
     });
 
+    const thinkingMessageId = crypto.randomUUID();
     addChatMessage({
+      id: thinkingMessageId,
       role: "assistant",
       content: "I'm analyzing your request and generating code...",
       isThinking: true,
     });
 
     setPrompt(message);
+
+    const historyWithoutThinking = chatMessages.filter((m) => !m.isThinking);
+
+    try {
+      await handleGenerate(
+        message,
+        selectedModel,
+        provider,
+        setIsLoading,
+        setStlData,
+        setGeneratedCode,
+        setGenerationInfo,
+        undefined,
+        codeStyle,
+        undefined,
+        (code: string) => {
+          addToHistory({
+            prompt: message,
+            code,
+            model: selectedModel,
+            style: codeStyle,
+            attachment: null,
+          });
+        },
+        historyWithoutThinking,
+      );
+
+      updateChatMessage(thinkingMessageId, {
+        content: "Here's the generated code based on your request:",
+        code: generatedCode,
+        isThinking: false,
+      });
+    } catch (error) {
+      updateChatMessage(thinkingMessageId, {
+        content: `Error: ${error instanceof Error ? error.message : "Failed to generate code"}`,
+        isThinking: false,
+      });
+    }
   };
 
   return (
