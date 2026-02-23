@@ -7,7 +7,7 @@ import "@testing-library/jest-dom";
 
 describe("Preview", () => {
   beforeEach(() => {
-    useStore.setState({ stlData: null, prompt: "" });
+    useStore.setState({ stlData: null, prompt: "", previewColor: "#ffaa00" });
     vi.clearAllMocks();
   });
 
