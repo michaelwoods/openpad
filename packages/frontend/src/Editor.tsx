@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import MonacoEditor from "@monaco-editor/react";
 import { useStore } from "./store";
 import { handleGenerate, getProviders } from "./api";
+import CodeEditor from "./components/editor/CodeEditor";
 
 const Editor: React.FC = () => {
   const {
@@ -26,6 +26,7 @@ const Editor: React.FC = () => {
     setAttachment,
     addToHistory,
   } = useStore();
+
   const [editedCode, setEditedCode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +45,6 @@ const Editor: React.FC = () => {
         (p) => p.id === provider,
       );
 
-      // If current provider is not configured or not set, switch to first available
       if (!currentProviderConfigured) {
         const firstProvider = configuredProviders[0];
         setProvider(firstProvider.id);
@@ -52,7 +52,6 @@ const Editor: React.FC = () => {
           setSelectedModel(firstProvider.models[0]);
         }
       } else {
-        // Ensure selected model belongs to current provider
         if (
           currentProviderConfigured.models.length > 0 &&
           !currentProviderConfigured.models.includes(selectedModel)
@@ -117,65 +116,61 @@ const Editor: React.FC = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault(); // prevent newline in textarea
+      e.preventDefault();
       onGenerate();
     }
-  };
-
-  const handleCopyCode = () => {
-    if (!generatedCode || generatedCode.startsWith("//")) return;
-    navigator.clipboard.writeText(generatedCode);
-    // toast.success('Code copied to clipboard!');
   };
 
   const currentProvider = availableProviders.find((p) => p.id === provider);
   const configuredProviders = availableProviders.filter((p) => p.configured);
 
   return (
-    <section className="editor-pane">
-      <h2>1. Describe Your Model</h2>
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="e.g., a 20mm cube with a 5mm hole in the center"
-        aria-label="Model description"
-      />
-      <div style={{ marginBottom: "1rem" }}>
+    <div className="h-full flex flex-col p-4 overflow-y-auto">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-zinc-200 mb-3">
+          1. Describe Your Model
+        </h2>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="e.g., a 20mm cube with a 5mm hole in the center"
+          className="w-full h-24 bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500 resize-none"
+          aria-label="Model description"
+        />
+      </div>
+
+      <div className="mb-4">
         <label
           htmlFor="file-upload"
-          style={{
-            display: "block",
-            marginBottom: "0.5rem",
-            fontSize: "0.9rem",
-          }}
+          className="block text-sm text-zinc-400 mb-2"
         >
           Attach .scad file (optional):
         </label>
-        <input
-          id="file-upload"
-          type="file"
-          accept=".scad"
-          onChange={handleFileUpload}
-        />
-        {attachment && (
-          <button
-            onClick={() => setAttachment(null)}
-            style={{
-              marginLeft: "1rem",
-              padding: "0.2rem 0.5rem",
-              fontSize: "0.8rem",
-            }}
-          >
-            Clear Attachment
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          <input
+            id="file-upload"
+            type="file"
+            accept=".scad"
+            onChange={handleFileUpload}
+            className="text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-zinc-700 file:text-zinc-300 hover:file:bg-zinc-600"
+          />
+          {attachment && (
+            <button
+              onClick={() => setAttachment(null)}
+              className="px-3 py-1 text-xs text-zinc-400 hover:text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded-md transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
-      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+
+      <div className="flex flex-wrap items-center gap-3 mb-6">
         <button
-          onClick={() => onGenerate()}
+          onClick={onGenerate}
           disabled={isLoading || configuredProviders.length === 0}
-          className={isLoading ? "loading-pulse" : ""}
+          className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-medium rounded-md transition-colors ${isLoading ? "animate-pulse" : ""}`}
         >
           {isLoading ? "Generating..." : "Generate"}
         </button>
@@ -186,6 +181,7 @@ const Editor: React.FC = () => {
               value={provider}
               onChange={handleProviderChange}
               disabled={isLoading}
+              className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
             >
               {configuredProviders.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -200,6 +196,7 @@ const Editor: React.FC = () => {
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
                   disabled={isLoading}
+                  className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
                 >
                   {currentProvider.models.map((model) => (
                     <option key={model} value={model}>
@@ -214,87 +211,68 @@ const Editor: React.FC = () => {
                   onChange={(e) => setSelectedModel(e.target.value)}
                   placeholder="Model name"
                   disabled={isLoading}
-                  style={{
-                    padding: "0.4rem",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                  }}
+                  className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
                 />
               ))}
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-zinc-400">Style:</label>
+              <select
+                value={codeStyle}
+                onChange={(e) => setCodeStyle(e.target.value)}
+                disabled={isLoading}
+                className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+              >
+                <option value="Default">Default</option>
+                <option value="Modular">Modular</option>
+              </select>
+            </div>
           </>
         ) : (
-          <span style={{ color: "red", fontSize: "0.9rem" }}>
-            No AI providers configured. Check .env or TODO.md
+          <span className="text-sm text-red-400">
+            No AI providers configured. Check .env
           </span>
         )}
-
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <label>Style:</label>
-          <select
-            value={codeStyle}
-            onChange={(e) => setCodeStyle(e.target.value)}
-            disabled={isLoading}
-          >
-            <option value="Default">Default</option>
-            <option value="Modular">Modular</option>
-          </select>
-        </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginTop: "2rem",
-        }}
-      >
-        <h2>2. Generated OpenSCAD Code</h2>
-        <div>
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-semibold text-zinc-200">
+            2. Generated OpenSCAD Code
+          </h2>
           {editedCode !== null && (
             <button
-              onClick={() => onGenerate()}
-              style={{ marginTop: 0, marginRight: "1rem" }}
+              onClick={onGenerate}
+              className="px-3 py-1 text-sm text-zinc-300 hover:text-white bg-zinc-700 hover:bg-zinc-600 rounded-md transition-colors"
             >
               Regenerate
             </button>
           )}
-          <button
-            onClick={handleCopyCode}
-            title="Copy code"
-            style={{ marginTop: 0 }}
-          >
-            Copy
-          </button>
+        </div>
+
+        <div className="flex-1 min-h-[300px] border border-zinc-700 rounded-lg overflow-hidden">
+          <CodeEditor
+            code={editedCode ?? generatedCode}
+            onChange={handleEditorChange}
+            isReadOnly={isLoading}
+            errorCount={
+              generationInfo?.errorCount ? Number(generationInfo.errorCount) : 0
+            }
+          />
         </div>
       </div>
-      <div
-        className="code-editor-container"
-        style={{ height: "400px", border: "1px solid #ccc" }}
-      >
-        <MonacoEditor
-          height="100%"
-          defaultLanguage="cpp"
-          value={editedCode ?? generatedCode}
-          onChange={handleEditorChange}
-          theme="light"
-          options={{
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            fontSize: 14,
-            ariaLabel: "Generated code",
-          }}
-        />
-      </div>
+
       {generationInfo && (
-        <details style={{ marginTop: "1rem" }}>
-          <summary>Show Generation Info</summary>
-          <pre>
+        <details className="mt-4">
+          <summary className="text-sm text-zinc-400 cursor-pointer hover:text-zinc-300">
+            Show Generation Info
+          </summary>
+          <pre className="mt-2 p-3 bg-zinc-800 rounded-md text-xs text-zinc-400 overflow-x-auto">
             <code>{JSON.stringify(generationInfo, null, 2)}</code>
           </pre>
         </details>
       )}
-    </section>
+    </div>
   );
 };
 
