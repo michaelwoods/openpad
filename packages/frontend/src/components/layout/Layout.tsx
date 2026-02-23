@@ -26,13 +26,7 @@ export default function Layout({ sidebar, editor, rightPanel }: LayoutProps) {
       <main className="flex-1 flex min-w-0">
         <div className="flex-1 min-w-0 border-r border-white/10">{editor}</div>
 
-        <div
-          className="flex flex-col"
-          style={{
-            width: "40%",
-            minWidth: "320px",
-          }}
-        >
+        <div className="flex flex-col w-[40%] min-w-[320px]">
           <div
             className={`
               transition-all duration-300 ease-in-out overflow-hidden

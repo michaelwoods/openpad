@@ -54,6 +54,7 @@ interface AppState {
   addChatMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void;
   clearChatMessages: () => void;
   setExportFormat: (format: "stl" | "amf" | "3mf") => void;
+  resetProject: () => void;
 }
 
 export interface ChatMessage {
@@ -140,6 +141,15 @@ export const useStore = create<AppState>()(
         })),
       clearChatMessages: () => set({ chatMessages: [] }),
       setExportFormat: (exportFormat) => set({ exportFormat }),
+      resetProject: () =>
+        set({
+          prompt: "a 20mm cube with a 5mm hole in the center",
+          generatedCode: "// OpenSCAD code will appear here",
+          stlData: null,
+          generationInfo: null,
+          attachment: null,
+          chatMessages: [],
+        }),
     }),
     {
       name: "openpad-storage",

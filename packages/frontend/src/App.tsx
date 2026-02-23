@@ -41,9 +41,11 @@ function App() {
               </Panel>
             }
             chat={
-              <div className="h-full bg-zinc-900/50 p-4">
-                <div className="flex items-center justify-center h-full text-zinc-500">
-                  Chat interface coming soon
+              <div className="h-full bg-zinc-900/50 p-4 flex items-center justify-center">
+                <div className="text-center text-zinc-500">
+                  {/* TODO: Implement chat interface - Issue #15 */}
+                  <p className="text-sm">Chat interface coming soon</p>
+                  <p className="text-xs text-zinc-600 mt-1">Issue #15</p>
                 </div>
               </div>
             }

@@ -1,4 +1,7 @@
 import { useStore } from "../../store";
+import { handleDownload } from "../../api";
+
+const MAX_HISTORY_ITEMS = 10;
 
 export default function Sidebar() {
   const {
@@ -13,6 +16,9 @@ export default function Sidebar() {
     history,
     loadHistoryItem,
     clearHistory,
+    resetProject,
+    prompt,
+    stlData,
   } = useStore();
 
   const models = [
@@ -106,7 +112,7 @@ export default function Sidebar() {
           <p className="text-sm text-zinc-600">No history yet</p>
         ) : (
           <ul className="space-y-2">
-            {history.slice(0, 10).map((item) => (
+            {history.slice(0, MAX_HISTORY_ITEMS).map((item) => (
               <li key={item.id}>
                 <button
                   onClick={() => loadHistoryItem(item)}
@@ -146,12 +152,16 @@ export default function Sidebar() {
             </select>
           </div>
 
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+          <button
+            onClick={() => handleDownload(prompt, stlData, exportFormat)}
+            disabled={!stlData}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors"
+          >
             Download Model
           </button>
 
           <button
-            onClick={clearHistory}
+            onClick={resetProject}
             className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-medium py-2 px-4 rounded-md transition-colors"
           >
             New Project
