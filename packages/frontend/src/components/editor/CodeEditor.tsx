@@ -29,7 +29,7 @@ export default function CodeEditor({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
       <EditorToolbar onCopy={handleCopy} isReadOnly={isReadOnly} />
 
       <div className="flex-1 min-h-0">

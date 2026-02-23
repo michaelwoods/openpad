@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import type { ChatMessage } from "./store";
 
 export const generateCode = async (
   prompt: string,
@@ -6,8 +7,23 @@ export const generateCode = async (
   style: string,
   attachment?: string | null,
   provider: string = "gemini",
+  chatHistory?: ChatMessage[],
 ) => {
-  const chainOfThought = `You are an expert OpenSCAD modeler. I want to create a detailed model. First, break down the model into its main components. Then, for each component, describe how you would create it using OpenSCAD. Finally, write the OpenSCAD code to generate the entire model. The user's request is: ${prompt}`;
+  let contextPrompt = prompt;
+
+  if (chatHistory && chatHistory.length > 0) {
+    const historyText = chatHistory
+      .filter((m) => !m.isThinking)
+      .map(
+        (m) =>
+          `${m.role === "user" ? "User" : "AI"}: ${m.content}${m.code ? `\n\nCode:\n${m.code}` : ""}`,
+      )
+      .join("\n\n");
+
+    contextPrompt = `Previous conversation:\n${historyText}\n\n---\n\nCurrent request: ${prompt}`;
+  }
+
+  const chainOfThought = `You are an expert OpenSCAD modeler. I want to create a detailed model. First, break down the model into its main components. Then, for each component, describe how you would create it using OpenSCAD. Finally, write the OpenSCAD code to generate the entire model. The user's request is: ${contextPrompt}`;
 
   const body: {
     prompt: string;
@@ -119,6 +135,7 @@ export const handleGenerate = async (
   style?: string,
   attachment?: string | null,
   onSuccess?: (code: string) => void,
+  chatHistory?: ChatMessage[],
 ) => {
   setIsLoading(true);
   setStlData(null);
@@ -133,6 +150,7 @@ export const handleGenerate = async (
           style || "Default",
           attachment,
           provider,
+          chatHistory,
         );
 
     setGeneratedCode(code);

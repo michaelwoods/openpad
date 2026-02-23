@@ -51,7 +51,13 @@ interface AppState {
   setMode: (mode: "agent" | "editor") => void;
   toggleSidebar: () => void;
   setMobileTab: (tab: "chat" | "preview" | "code") => void;
-  addChatMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void;
+  addChatMessage: (
+    message: Omit<ChatMessage, "id" | "timestamp"> & { id?: string },
+  ) => void;
+  updateChatMessage: (
+    id: string,
+    updates: Partial<Omit<ChatMessage, "id" | "timestamp">>,
+  ) => void;
   clearChatMessages: () => void;
   setExportFormat: (format: "stl" | "amf" | "3mf") => void;
   resetProject: () => void;
@@ -134,10 +140,16 @@ export const useStore = create<AppState>()(
             ...state.chatMessages,
             {
               ...message,
-              id: crypto.randomUUID(),
+              id: message.id || crypto.randomUUID(),
               timestamp: Date.now(),
             },
           ],
+        })),
+      updateChatMessage: (id, updates) =>
+        set((state) => ({
+          chatMessages: state.chatMessages.map((msg) =>
+            msg.id === id ? { ...msg, ...updates } : msg,
+          ),
         })),
       clearChatMessages: () => set({ chatMessages: [] }),
       setExportFormat: (exportFormat) => set({ exportFormat }),
