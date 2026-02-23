@@ -27,6 +27,8 @@ export default function ChatPanel() {
   }, [chatMessages]);
 
   const handleSend = async (message: string) => {
+    if (isLoading || !message.trim()) return;
+
     const userMessageId = crypto.randomUUID();
     const thinkingMessageId = crypto.randomUUID();
 
