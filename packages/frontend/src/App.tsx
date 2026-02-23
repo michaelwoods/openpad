@@ -9,9 +9,20 @@ import Panel from "./components/layout/Panel";
 import RightPanel from "./components/layout/RightPanel";
 import Sidebar from "./components/sidebar/Sidebar";
 import ChatPanel from "./components/chat/ChatPanel";
+import MobileNav from "./components/layout/MobileNav";
 
 function App() {
-  const { showAbout, setShowAbout } = useStore();
+  const { showAbout, setShowAbout, mobileTab, setMobileTab, setMode } =
+    useStore();
+
+  const handleMobileTabChange = (tab: "chat" | "preview" | "code") => {
+    setMobileTab(tab);
+    if (tab === "code") {
+      setMode("editor");
+    } else {
+      setMode("agent");
+    }
+  };
 
   if (showAbout) {
     return (
@@ -27,6 +38,7 @@ function App() {
     <div className="flex flex-col h-screen">
       <Toaster position="bottom-center" />
       <Header onShowAbout={() => setShowAbout(true)} />
+      <MobileNav activeTab={mobileTab} onTabChange={handleMobileTabChange} />
       <Layout
         sidebar={<Sidebar />}
         editor={
@@ -44,6 +56,8 @@ function App() {
             chat={<ChatPanel />}
           />
         }
+        mobileTab={mobileTab}
+        onMobileTabChange={handleMobileTabChange}
       />
     </div>
   );
