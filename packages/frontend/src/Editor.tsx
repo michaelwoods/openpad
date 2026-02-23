@@ -255,9 +255,6 @@ const Editor: React.FC = () => {
             code={editedCode ?? generatedCode}
             onChange={handleEditorChange}
             isReadOnly={isLoading}
-            errorCount={
-              generationInfo?.errorCount ? Number(generationInfo.errorCount) : 0
-            }
           />
         </div>
       </div>
