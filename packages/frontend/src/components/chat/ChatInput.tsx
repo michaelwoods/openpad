@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
+  onSend: (message: string) => void | Promise<void>;
   disabled?: boolean;
 }
 

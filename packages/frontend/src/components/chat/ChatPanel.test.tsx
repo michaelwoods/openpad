@@ -48,7 +48,9 @@ describe("ChatPanel", () => {
 
   it("shows thinking message while loading", async () => {
     const mockHandleGenerate = vi.mocked(api.handleGenerate);
-    mockHandleGenerate.mockImplementation(() => new Promise(() => {}));
+    mockHandleGenerate.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 1000)),
+    );
 
     render(<ChatPanel />);
 
