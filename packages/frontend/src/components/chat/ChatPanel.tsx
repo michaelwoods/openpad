@@ -15,7 +15,6 @@ export default function ChatPanel() {
     setGeneratedCode,
     setGenerationInfo,
     setPrompt,
-    generatedCode,
     selectedModel,
     provider,
     codeStyle,
@@ -28,12 +27,15 @@ export default function ChatPanel() {
   }, [chatMessages]);
 
   const handleSend = async (message: string) => {
+    const userMessageId = crypto.randomUUID();
+    const thinkingMessageId = crypto.randomUUID();
+
     addChatMessage({
+      id: userMessageId,
       role: "user",
       content: message,
     });
 
-    const thinkingMessageId = crypto.randomUUID();
     addChatMessage({
       id: thinkingMessageId,
       role: "assistant",
@@ -43,8 +45,18 @@ export default function ChatPanel() {
 
     setPrompt(message);
 
-    const historyWithoutThinking = chatMessages.filter((m) => !m.isThinking);
+    const allMessages = [
+      ...chatMessages,
+      {
+        role: "user" as const,
+        content: message,
+        id: userMessageId,
+        timestamp: Date.now(),
+      },
+    ];
+    const historyWithoutThinking = allMessages.filter((m) => !m.isThinking);
 
+    let newCode = "";
     try {
       await handleGenerate(
         message,
@@ -58,6 +70,7 @@ export default function ChatPanel() {
         codeStyle,
         undefined,
         (code: string) => {
+          newCode = code;
           addToHistory({
             prompt: message,
             code,
@@ -71,7 +84,7 @@ export default function ChatPanel() {
 
       updateChatMessage(thinkingMessageId, {
         content: "Here's the generated code based on your request:",
-        code: generatedCode,
+        code: newCode,
         isThinking: false,
       });
     } catch (error) {
