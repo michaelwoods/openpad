@@ -1,8 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import App from "./App";
 import { useStore } from "./store";
 import "@testing-library/jest-dom";
+
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe("App", () => {
   beforeEach(() => {

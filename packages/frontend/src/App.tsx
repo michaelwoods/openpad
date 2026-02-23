@@ -8,6 +8,7 @@ import Layout from "./components/layout/Layout";
 import Panel from "./components/layout/Panel";
 import RightPanel from "./components/layout/RightPanel";
 import Sidebar from "./components/sidebar/Sidebar";
+import ChatPanel from "./components/chat/ChatPanel";
 
 function App() {
   const { showAbout, setShowAbout } = useStore();
@@ -40,15 +41,7 @@ function App() {
                 <Preview />
               </Panel>
             }
-            chat={
-              <div className="h-full bg-zinc-900/50 p-4 flex items-center justify-center">
-                <div className="text-center text-zinc-500">
-                  {/* TODO: Implement chat interface - Issue #15 */}
-                  <p className="text-sm">Chat interface coming soon</p>
-                  <p className="text-xs text-zinc-600 mt-1">Issue #15</p>
-                </div>
-              </div>
-            }
+            chat={<ChatPanel />}
           />
         }
       />
