@@ -13,7 +13,7 @@ describe("Preview", () => {
 
   it("renders the preview component", () => {
     render(<Preview />);
-    expect(screen.getByText("3. 3D Preview")).toBeInTheDocument();
+    expect(screen.getByText("3D Preview")).toBeInTheDocument();
   });
 
   it("disables the download button when stlData is null", () => {
@@ -53,8 +53,15 @@ describe("Preview", () => {
 
   it("updates the preview color", () => {
     render(<Preview />);
-    const colorInput = screen.getByTitle("Change Model Color");
+
+    // Click the color button to open the popup
+    const colorButton = screen.getByLabelText("Open color picker");
+    fireEvent.click(colorButton);
+
+    // Find and change the color input in the popup
+    const colorInput = screen.getByDisplayValue("#ffaa00");
     fireEvent.change(colorInput, { target: { value: "#00ff00" } });
+
     expect(useStore.getState().previewColor).toBe("#00ff00");
   });
 });

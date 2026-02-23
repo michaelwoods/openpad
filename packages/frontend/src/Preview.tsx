@@ -1,42 +1,55 @@
-import React from 'react';
-import Viewer from './Viewer';
-import { useStore } from './store';
-import { handleDownload } from './api';
+import { useState } from "react";
+import Viewer from "./Viewer";
+import { useStore } from "./store";
+import { handleDownload } from "./api";
+import PreviewPanel from "./components/preview/PreviewPanel";
 
 const Preview: React.FC = () => {
-  const {
-    stlData,
-    prompt,
-    previewColor,
-    setPreviewColor,
-  } = useStore();
-  const [format, setFormat] = React.useState('stl');
+  const { stlData, prompt, previewColor, setPreviewColor, isLoading } =
+    useStore();
+  const [format, setFormat] = useState("stl");
 
   const onDownload = () => {
     handleDownload(prompt, stlData, format);
   };
 
   return (
-    <section className="viewer-pane">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-        <h2>3. 3D Preview</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <input 
-            type="color" 
-            value={previewColor} 
-            onChange={(e) => setPreviewColor(e.target.value)} 
-            title="Change Model Color"
-          />
-          <select value={format} onChange={(e) => setFormat(e.target.value)}>
-            <option value="stl">STL</option>
-            <option value="amf">AMF (color)</option>
-            <option value="3mf">3MF (color)</option>
-          </select>
-          <button onClick={onDownload} disabled={!stlData} title="Download Model" style={{ marginTop: 0 }}>Download</button>
+    <PreviewPanel
+      color={previewColor}
+      onColorChange={setPreviewColor}
+      isLoading={isLoading}
+      loadingMessage={isLoading ? "AI is thinking..." : "Rendering..."}
+    >
+      <div className="h-full flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <h2 className="text-sm font-semibold text-zinc-300">3D Preview</h2>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+              className="bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
+            >
+              <option value="stl">STL</option>
+              <option value="amf">AMF (color)</option>
+              <option value="3mf">3MF (color)</option>
+            </select>
+
+            <button
+              onClick={onDownload}
+              disabled={!stlData}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white text-xs font-medium rounded-md transition-colors"
+            >
+              Download
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0">
+          <Viewer stl={stlData} format={format} color={previewColor} />
         </div>
       </div>
-      <Viewer stl={stlData} format={format} color={previewColor} />
-    </section>
+    </PreviewPanel>
   );
 };
 
