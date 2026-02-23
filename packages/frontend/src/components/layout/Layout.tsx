@@ -6,7 +6,6 @@ interface LayoutProps {
   editor: ReactNode;
   rightPanel: ReactNode;
   mobileTab: "chat" | "preview" | "code";
-  onMobileTabChange?: (tab: "chat" | "preview" | "code") => void;
 }
 
 export default function Layout({

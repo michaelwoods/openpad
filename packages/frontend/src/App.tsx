@@ -57,7 +57,6 @@ function App() {
           />
         }
         mobileTab={mobileTab}
-        onMobileTabChange={handleMobileTabChange}
       />
     </div>
   );
