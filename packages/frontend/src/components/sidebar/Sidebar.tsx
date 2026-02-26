@@ -160,9 +160,9 @@ export default function Sidebar() {
               }
               className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500"
             >
-              <option value="stl">STL (No Color)</option>
-              <option value="3mf">3MF (Color)</option>
-              <option value="amf">AMF (Color)</option>
+              <option value="stl">STL ⬜</option>
+              <option value="3mf">3MF 🎨</option>
+              <option value="amf">AMF 🎨</option>
             </select>
           </div>
 
