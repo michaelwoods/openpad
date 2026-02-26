@@ -1,0 +1,43 @@
+name: OpenCode Autofix
+on:
+  schedule:
+    - cron: "0 10 * * *" # Every day at 10am UTC
+  workflow_dispatch:
+
+jobs:
+  opencode:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        with:
+          model: opencode/minimax-m2.5-free
+          prompt: |
+            Act as a Senior Engineer. Resolve ONE high-priority issue.
+
+            ### 1. Selection
+            - Scan the top 10 issues.
+            - **Priority**: 1. `ready-to-start` + `bug`, 2. `ready-to-start` + `enhancement`, 3. `bug`.
+            - If no clear candidate exists, exit.
+
+            ### 2. Implementation
+            - Create branch: `opencode-fix/[issue-number]`.
+            - Code: Follow `CONTRIBUTING.md` and existing project style.
+            - Quality: Add/update tests and ensure robust error handling.
+            - Scope: Fix the selected issue ONLY. No unrelated refactoring.
+
+            ### 3. Submission
+            - Push branch and open PR to `main`. Refer to `CONTRIBUTING.md` guidelines.
+            - Title: Use Conventional Commits (e.g., `fix: ...` or `feat: ...`).
+            - Body: Describe the fix and include "Closes #[issue-number]".
