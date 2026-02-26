@@ -5,7 +5,6 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
       - "**.md" # Don't run review for documentation-only changes
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -26,9 +25,10 @@ jobs:
       - uses: anomalyco/opencode/github@latest
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: ${{ vars.OPENCODE_MODEL_PRIMARY }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          use_github_token: true
           prompt: |
             Review this pull request as a Senior Software Engineer:
             - Analyze code quality, logic errors, and edge cases.
