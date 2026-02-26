@@ -1,0 +1,33 @@
+name: OpenCode Issue Triage
+on:
+  schedule:
+    - cron: "0 9 * * *" # Every day at 9am UTC
+  workflow_dispatch:   # Allows you to run it manually to test
+
+jobs:
+  opencode:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        with:
+          model: opencode/minimax-m2.5-free
+          prompt: |
+            Act as a Project Manager and Senior Developer:
+            1. **Cleanup**: Close stale issues or duplicates. Link related issues.
+            2. **Sync**: Review TODO.md and create GitHub Issues for new tasks found.
+            3. **Backlog Refinement**: Scan open issues. If an issue has a clear
+               description and reproduction steps (for bugs) or clear requirements
+               (for features), apply the 'ready-to-start' label.
+            4. **Prioritization**: Ensure only the most actionable and high-impact
+               items receive the 'ready-to-start' label (limit to 3-5 items).
