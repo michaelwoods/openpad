@@ -1,18 +1,11 @@
-import { useState } from "react";
 import Viewer from "./Viewer";
 import { useStore } from "./store";
-import { handleDownload } from "./api";
 import PreviewPanel from "./components/preview/PreviewPanel";
 import ColorPicker from "./components/preview/ColorPicker";
 
 const Preview: React.FC = () => {
-  const { stlData, prompt, previewColor, setPreviewColor, isLoading } =
+  const { stlData, previewColor, setPreviewColor, isLoading, exportFormat } =
     useStore();
-  const [format, setFormat] = useState("stl");
-
-  const onDownload = () => {
-    handleDownload(prompt, stlData, format);
-  };
 
   return (
     <PreviewPanel isLoading={isLoading} loadingMessage="Loading...">
@@ -44,7 +37,7 @@ const Preview: React.FC = () => {
         </div>
 
         <div className="flex-1 min-h-0">
-          <Viewer stl={stlData} format={format} color={previewColor} />
+          <Viewer stl={stlData} format={exportFormat} color={previewColor} />
         </div>
       </div>
     </PreviewPanel>

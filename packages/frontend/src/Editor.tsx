@@ -236,20 +236,6 @@ const Editor: React.FC = () => {
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold text-zinc-200">
-            2. Generated OpenSCAD Code
-          </h2>
-          {editedCode !== null && (
-            <button
-              onClick={onGenerate}
-              className="px-3 py-1 text-sm text-zinc-300 hover:text-white bg-zinc-700 hover:bg-zinc-600 rounded-md transition-colors"
-            >
-              Regenerate
-            </button>
-          )}
-        </div>
-
         <div className="flex-1 min-h-[300px] border border-zinc-700 rounded-lg overflow-hidden">
           <CodeEditor
             code={editedCode ?? generatedCode}
