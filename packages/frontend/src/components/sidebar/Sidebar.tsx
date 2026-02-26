@@ -22,13 +22,6 @@ export default function Sidebar() {
     availableProviders,
   } = useStore();
 
-  const models = [
-    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-    { value: "gemini-3-flash", label: "Gemini 3 Flash" },
-    { value: "gemini-3-pro", label: "Gemini 3 Pro Preview" },
-  ];
-
   const formatTimestamp = (timestamp: number) => {
     const diff = Date.now() - timestamp;
     const minutes = Math.floor(diff / 60000);
@@ -77,7 +70,10 @@ export default function Sidebar() {
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500"
+              disabled={
+                !availableProviders.find((p) => p.id === provider)?.configured
+              }
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
             >
               {availableProviders
                 .find((p) => p.id === provider)
@@ -85,12 +81,7 @@ export default function Sidebar() {
                   <option key={model} value={model}>
                     {model}
                   </option>
-                )) ||
-                models.map((model) => (
-                  <option key={model.value} value={model.value}>
-                    {model.label}
-                  </option>
-                ))}
+                )) || <option value="">No provider configured</option>}
             </select>
           </div>
 
