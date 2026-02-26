@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import ColorPicker from "./ColorPicker";
 import LoadingOverlay from "./LoadingOverlay";
 
 interface PreviewPanelProps {
@@ -19,10 +18,6 @@ export default function PreviewPanel({
 }: PreviewPanelProps) {
   return (
     <div className="relative h-full w-full">
-      <div className="absolute top-3 right-3 z-10">
-        <ColorPicker color={color} onChange={onColorChange} />
-      </div>
-
       {isLoading && <LoadingOverlay message={loadingMessage} />}
 
       {children}
