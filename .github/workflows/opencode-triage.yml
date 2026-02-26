@@ -2,7 +2,7 @@ name: OpenCode Issue Triage
 on:
   schedule:
     - cron: "0 9 * * *" # Every day at 9am UTC
-  workflow_dispatch:   # Allows you to run it manually to test
+  workflow_dispatch: # Allows you to run it manually to test
 
 jobs:
   opencode:
@@ -17,6 +17,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Ensure label exists
+        run: |
+          gh label create "ready-to-start" --repo "${{ github.repository }}" || true
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
