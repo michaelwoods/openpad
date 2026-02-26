@@ -19,14 +19,8 @@ export default function Sidebar() {
     resetProject,
     prompt,
     stlData,
+    availableProviders,
   } = useStore();
-
-  const models = [
-    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-    { value: "gemini-3-flash", label: "Gemini 3 Flash" },
-    { value: "gemini-3-pro", label: "Gemini 3 Pro Preview" },
-  ];
 
   const formatTimestamp = (timestamp: number) => {
     const diff = Date.now() - timestamp;
@@ -49,10 +43,25 @@ export default function Sidebar() {
             <label className="block text-xs text-zinc-500 mb-1">Provider</label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                const newProviderId = e.target.value;
+                setProvider(newProviderId);
+                const newProvider = availableProviders.find(
+                  (p) => p.id === newProviderId,
+                );
+                if (newProvider && newProvider.models.length > 0) {
+                  setSelectedModel(newProvider.models[0]);
+                }
+              }}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500"
             >
-              <option value="gemini">Google Gemini</option>
+              {availableProviders
+                .filter((p) => p.configured)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -61,13 +70,18 @@ export default function Sidebar() {
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500"
+              disabled={
+                !availableProviders.find((p) => p.id === provider)?.configured
+              }
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
             >
-              {models.map((model) => (
-                <option key={model.value} value={model.value}>
-                  {model.label}
-                </option>
-              ))}
+              {availableProviders
+                .find((p) => p.id === provider)
+                ?.models.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                )) || <option value="">No provider configured</option>}
             </select>
           </div>
 
