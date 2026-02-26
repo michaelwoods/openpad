@@ -19,6 +19,7 @@ export default function Sidebar() {
     resetProject,
     prompt,
     stlData,
+    availableProviders,
   } = useStore();
 
   const models = [
@@ -49,10 +50,25 @@ export default function Sidebar() {
             <label className="block text-xs text-zinc-500 mb-1">Provider</label>
             <select
               value={provider}
-              onChange={(e) => setProvider(e.target.value)}
+              onChange={(e) => {
+                const newProviderId = e.target.value;
+                setProvider(newProviderId);
+                const newProvider = availableProviders.find(
+                  (p) => p.id === newProviderId,
+                );
+                if (newProvider && newProvider.models.length > 0) {
+                  setSelectedModel(newProvider.models[0]);
+                }
+              }}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500"
             >
-              <option value="gemini">Google Gemini</option>
+              {availableProviders
+                .filter((p) => p.configured)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -63,11 +79,18 @@ export default function Sidebar() {
               onChange={(e) => setSelectedModel(e.target.value)}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500"
             >
-              {models.map((model) => (
-                <option key={model.value} value={model.value}>
-                  {model.label}
-                </option>
-              ))}
+              {availableProviders
+                .find((p) => p.id === provider)
+                ?.models.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                )) ||
+                models.map((model) => (
+                  <option key={model.value} value={model.value}>
+                    {model.label}
+                  </option>
+                ))}
             </select>
           </div>
 
