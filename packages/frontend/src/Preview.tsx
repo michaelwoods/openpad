@@ -3,7 +3,8 @@ import { useStore } from "./store";
 import PreviewPanel from "./components/preview/PreviewPanel";
 
 const Preview: React.FC = () => {
-  const { stlData, previewColor, setPreviewColor, isLoading } = useStore();
+  const { stlData, previewColor, setPreviewColor, isLoading, exportFormat } =
+    useStore();
 
   return (
     <PreviewPanel
@@ -18,7 +19,7 @@ const Preview: React.FC = () => {
         </div>
 
         <div className="flex-1 min-h-0">
-          <Viewer stl={stlData} format="stl" color={previewColor} />
+          <Viewer stl={stlData} format={exportFormat} color={previewColor} />
         </div>
       </div>
     </PreviewPanel>
