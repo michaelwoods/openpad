@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import Sidebar from "./Sidebar";
-import { useStore, type Provider } from "../../store";
+import { useStore } from "../../store";
+import type { Provider } from "../../api";
 import "@testing-library/jest-dom";
 
 describe("Sidebar", () => {
