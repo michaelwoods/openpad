@@ -15,12 +15,7 @@ const Preview: React.FC = () => {
   };
 
   return (
-    <PreviewPanel
-      color={previewColor}
-      onColorChange={setPreviewColor}
-      isLoading={isLoading}
-      loadingMessage="Loading..."
-    >
+    <PreviewPanel isLoading={isLoading} loadingMessage="Loading...">
       <div className="h-full flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
           <h2 className="text-sm font-semibold text-zinc-300">3D Preview</h2>

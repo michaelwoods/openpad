@@ -3,16 +3,12 @@ import LoadingOverlay from "./LoadingOverlay";
 
 interface PreviewPanelProps {
   children: ReactNode;
-  color: string;
-  onColorChange: (color: string) => void;
   isLoading?: boolean;
   loadingMessage?: string;
 }
 
 export default function PreviewPanel({
   children,
-  color,
-  onColorChange,
   isLoading = false,
   loadingMessage = "Loading...",
 }: PreviewPanelProps) {
