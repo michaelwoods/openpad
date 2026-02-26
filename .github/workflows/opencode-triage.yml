@@ -20,12 +20,15 @@ jobs:
       - name: Ensure label exists
         run: |
           gh label create "ready-to-start" --repo "${{ github.repository }}" || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: opencode/minimax-m2.5-free
+          model: ${{ vars.OPENCODE_MODEL_THINK }}
           prompt: |
             Act as a Project Manager and Senior Developer:
             1. **Cleanup**: Close stale issues or duplicates. Link related issues.
