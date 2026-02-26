@@ -2,10 +2,18 @@ import Viewer from "./Viewer";
 import { useStore } from "./store";
 import PreviewPanel from "./components/preview/PreviewPanel";
 import ColorPicker from "./components/preview/ColorPicker";
+import { handleDownload } from "./api";
 
 const Preview: React.FC = () => {
-  const { stlData, previewColor, setPreviewColor, isLoading, exportFormat } =
-    useStore();
+  const {
+    stlData,
+    previewColor,
+    setPreviewColor,
+    isLoading,
+    exportFormat,
+    setExportFormat,
+    prompt,
+  } = useStore();
 
   return (
     <PreviewPanel isLoading={isLoading} loadingMessage="Loading...">
@@ -17,8 +25,10 @@ const Preview: React.FC = () => {
             <ColorPicker color={previewColor} onChange={setPreviewColor} />
 
             <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
+              value={exportFormat}
+              onChange={(e) =>
+                setExportFormat(e.target.value as "stl" | "amf" | "3mf")
+              }
               className="bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
             >
               <option value="stl">STL</option>
@@ -27,7 +37,7 @@ const Preview: React.FC = () => {
             </select>
 
             <button
-              onClick={onDownload}
+              onClick={() => handleDownload(prompt, stlData, exportFormat)}
               disabled={!stlData}
               className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white text-xs font-medium rounded-md transition-colors"
             >

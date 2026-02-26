@@ -78,7 +78,10 @@ export default function ColorPicker({ color, onChange }: ColorPickerProps) {
             <input
               type="color"
               value={color}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => {
+                e.stopPropagation();
+                onChange(e.target.value);
+              }}
               className="w-full h-8 cursor-pointer rounded"
             />
           </div>
