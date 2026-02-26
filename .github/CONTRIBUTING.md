@@ -2,6 +2,8 @@
 
 This project uses a combination of human and AI (OpenCode) contributors. To maintain high code quality and consistency, all contributors must adhere to the following standards.
 
+> **Note:** For detailed AI agent instructions (build commands, testing, coding standards), see [AGENTS.md](../AGENTS.md).
+
 ## 🤖 AI Contributor Guidelines (OpenCode)
 
 When implementing fixes or features automatically:
