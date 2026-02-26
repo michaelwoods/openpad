@@ -31,9 +31,9 @@ const Preview: React.FC = () => {
               }
               className="bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
             >
-              <option value="stl">STL</option>
-              <option value="amf">AMF (color)</option>
-              <option value="3mf">3MF (color)</option>
+              <option value="stl">STL ⬜</option>
+              <option value="amf">AMF 🎨</option>
+              <option value="3mf">3MF 🎨</option>
             </select>
 
             <button
