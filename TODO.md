@@ -1,5 +1,7 @@
 # TODO - Future Work
 
+> **Note:** All items below have been triaged into GitHub Issues (#70-#86). This file is kept for historical reference.
+
 Lower priority items for future development. See GitHub Issues for tracked work.
 
 ## AI & Code Generation
