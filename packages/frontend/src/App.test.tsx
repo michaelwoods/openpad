@@ -36,9 +36,13 @@ describe("App", () => {
     expect(screen.getByText("Export")).toBeInTheDocument();
   });
 
-  it("generates code when the Generate button is clicked", async () => {
+  it("generates code when a prompt is sent in Agent mode", async () => {
     render(<App />);
-    fireEvent.click(screen.getByText("Generate"));
+
+    const inputs = screen.getAllByPlaceholderText(/Type a message/);
+    const input = inputs[0];
+    fireEvent.change(input, { target: { value: "Make a cube" } });
+    fireEvent.click(screen.getAllByRole("button", { name: /Send/i })[0]);
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("cube(10);")).toBeInTheDocument();
