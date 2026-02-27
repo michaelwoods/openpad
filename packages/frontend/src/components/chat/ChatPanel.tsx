@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { useStore } from "../../store";
 import { handleGenerate } from "../../api";
 import ChatMessage from "./ChatMessage";
@@ -26,7 +26,7 @@ export default function ChatPanel() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentProvider = availableProviders.find((p) => p.id === provider);
-  const configuredProviders = availableProviders.filter((p) => p.configured);
+  const isCurrentProviderConfigured = currentProvider?.configured ?? false;
 
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProviderId = e.target.value;
@@ -37,12 +37,19 @@ export default function ChatPanel() {
     }
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
-  }, [chatMessages]);
-
   const handleSend = async (message: string) => {
     if (isLoading || !message.trim()) return;
+
+    if (!isCurrentProviderConfigured) {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content:
+          "The selected AI provider is not configured. Please configure an API key in the Settings to use this provider.",
+        isThinking: false,
+      });
+      return;
+    }
 
     const userMessageId = crypto.randomUUID();
     const thinkingMessageId = crypto.randomUUID();
@@ -122,7 +129,7 @@ export default function ChatPanel() {
           </p>
         </div>
 
-        {configuredProviders.length > 0 && (
+        {availableProviders.length > 0 ? (
           <div className="flex items-center gap-2">
             <select
               value={provider}
@@ -130,9 +137,9 @@ export default function ChatPanel() {
               disabled={isLoading}
               className="bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 disabled:opacity-50 flex-1"
             >
-              {configuredProviders.map((p) => (
+              {availableProviders.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}
+                  {p.name} {p.configured ? "" : "(not configured)"}
                 </option>
               ))}
             </select>
@@ -162,6 +169,16 @@ export default function ChatPanel() {
                 />
               ))}
           </div>
+        ) : (
+          <p className="text-xs text-amber-500">
+            No AI providers available. Configure an API key to get started.
+          </p>
+        )}
+
+        {!isCurrentProviderConfigured && availableProviders.length > 0 && (
+          <p className="text-xs text-amber-500">
+            Selected provider is not configured
+          </p>
         )}
       </div>
 
