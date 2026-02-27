@@ -27,6 +27,11 @@ jobs:
       - name: Validate CI Status
         id: gatekeeper
         run: |
+          if [[ "${{ github.event.workflow_run.event }}" != "pull_request" ]]; then
+            echo "Not a PR event. Skipping."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           if [[ "${{ github.event.workflow_run.conclusion }}" != "success" ]]; then
             echo "CI failed (${{ github.event.workflow_run.conclusion }}). Skipping review."
             echo "should_run=false" >> $GITHUB_OUTPUT
