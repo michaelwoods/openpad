@@ -12,7 +12,7 @@ on:
       - "**.md" # Don't run review for documentation-only changes
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.pull_requests[0].number || github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
