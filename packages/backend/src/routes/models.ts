@@ -4,6 +4,7 @@ import {
   FastifyReply,
   FastifyRequest,
 } from "fastify";
+import { z } from "zod";
 import OpenAI from "openai";
 
 interface Provider {
@@ -26,6 +27,31 @@ export default async function (
 ) {
   fastify.get(
     "/models",
+    {
+      schema: {
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              providers: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    models: { type: "array", items: { type: "string" } },
+                    configured: { type: "boolean" },
+                    baseUrl: { type: "string" },
+                    headers: { type: "object" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const providers: Provider[] = [];
 

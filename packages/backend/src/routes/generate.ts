@@ -61,6 +61,51 @@ export default async function (
 ) {
   fastify.post(
     "/generate",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["prompt"],
+          properties: {
+            prompt: { type: "string", minLength: 1, maxLength: 5000 },
+            provider: {
+              type: "string",
+              enum: ["gemini", "ollama", "openai", "openrouter", "custom"],
+              default: "gemini",
+            },
+            model: { type: "string" },
+            style: { type: "string", enum: ["Default", "Modular"] },
+            attachment: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              code: { type: "string" },
+              stl: { type: "string" },
+            },
+            additionalProperties: true,
+          },
+          400: {
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              details: {},
+            },
+          },
+          422: {
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              code: { type: ["string", "null"] },
+              stl: { type: "null" },
+              details: { type: "string" },
+            },
+          },
+        },
+      },
+    },
     async (request: GenerateRequest, reply: FastifyReply) => {
       let tempDir: string | undefined;
       try {
