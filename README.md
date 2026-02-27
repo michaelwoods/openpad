@@ -19,7 +19,7 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) (v22+)
+- [Node.js](https://nodejs.org/en/) (v20+)
 - [pnpm](https://pnpm.io/installation)
 - [Docker](https://docs.docker.com/get-docker/)
 
