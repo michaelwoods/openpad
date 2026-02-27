@@ -1,6 +1,7 @@
 {
   "name": "openpad",
   "private": true,
+  "packageManager": "pnpm@10.30.1",
   "scripts": {
     "dev": "pnpm --parallel --stream dev",
     "build": "pnpm --parallel build",
