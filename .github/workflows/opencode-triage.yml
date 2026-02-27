@@ -79,6 +79,5 @@ jobs:
             2. **Backlog Refinement**: Scan open issues. If an issue has a clear
                description and reproduction steps (for bugs) or clear requirements
                (for features), apply the 'ready-to-start' label.
-            3. **Prioritization**: Label only the MOST actionable and high-impact items.
-               IMPORTANT: Label at most 3 items per run (not 3-5 total). Select the top 3 
-               that are most complete, well-described, and ready to implement.
+            3. **Prioritization**: Label at most 3 items per run.
+               Select the most complete, well-described issues that are ready to implement.
