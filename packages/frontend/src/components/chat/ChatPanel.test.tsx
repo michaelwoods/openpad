@@ -3,7 +3,22 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import ChatPanel from "./ChatPanel";
 import { useStore } from "../../store";
 import * as api from "../../api";
+import type { Provider } from "../../api";
 import "@testing-library/jest-dom";
+
+const mockConfiguredProvider: Provider = {
+  id: "gemini",
+  name: "Google Gemini",
+  models: ["gemini-2.5-flash", "gemini-2.5-pro"],
+  configured: true,
+};
+
+const mockUnconfiguredProvider: Provider = {
+  id: "openai",
+  name: "OpenAI",
+  models: ["gpt-4o"],
+  configured: false,
+};
 
 vi.mock("../../api", () => ({
   handleGenerate: vi.fn(),
@@ -17,6 +32,7 @@ describe("ChatPanel", () => {
       selectedModel: "gemini-2.5-flash",
       provider: "gemini",
       codeStyle: "Default",
+      availableProviders: [mockConfiguredProvider],
     });
     vi.clearAllMocks();
   });
@@ -109,5 +125,37 @@ describe("ChatPanel", () => {
         expect.any(Array),
       );
     });
+  });
+
+  it("shows error message when provider is not configured", async () => {
+    useStore.setState({
+      availableProviders: [mockConfiguredProvider, mockUnconfiguredProvider],
+      provider: "openai",
+      selectedModel: "gpt-4o",
+    });
+
+    render(<ChatPanel />);
+
+    expect(
+      screen.getByText("Selected provider is not configured"),
+    ).toBeInTheDocument();
+
+    const input = screen.getByPlaceholderText(/Type a message/);
+    fireEvent.change(input, { target: { value: "Hello AI" } });
+    fireEvent.click(screen.getByRole("button", { name: /Send/i }));
+
+    expect(
+      screen.getByText(/Please configure an API key/i),
+    ).toBeInTheDocument();
+  });
+
+  it("shows warning when no providers are available", () => {
+    useStore.setState({
+      availableProviders: [],
+    });
+
+    render(<ChatPanel />);
+
+    expect(screen.getByText(/No AI providers available/i)).toBeInTheDocument();
   });
 });
