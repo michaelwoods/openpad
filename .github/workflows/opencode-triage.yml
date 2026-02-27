@@ -1,11 +1,41 @@
 name: OpenCode Issue Triage
 on:
   schedule:
-    - cron: "0 9 * * *" # Every day at 9am UTC
-  workflow_dispatch: # Allows you to run it manually to test
+    # Run 4 times daily (every 6 hours): midnight, 6am, noon, 6pm UTC
+    - cron: "0 0,6,12,18 * * *"
+  workflow_dispatch:
+    inputs:
+      max_items:
+        description: "Max items to label (overrides repo variable)"
+        required: false
+        type: string
 
 jobs:
+  check-issues:
+    runs-on: ubuntu-latest
+    outputs:
+      needs_triage: ${{ steps.count.outputs.needs_triage }}
+    steps:
+      - name: Count issues needing triage
+        id: count
+        run: |
+          # Count open issues WITHOUT ready-to-start label
+          total=$(gh issue list --state open --json number 2>/dev/null | jq '. | length')
+          ready=$(gh issue list --state open --label "ready-to-start" --json number 2>/dev/null | jq '. | length')
+
+          # If no ready-to-start, all need triage. Otherwise, check remaining.
+          if [ "$ready" -eq 0 ]; then
+            needs=$total
+          else
+            needs=$((total - ready))
+          fi
+
+          echo "Total open: $total, Ready-to-start: $ready, Need triage: $needs"
+          echo "needs_triage=$needs" >> $GITHUB_OUTPUT
+
   opencode:
+    needs: check-issues
+    if: needs.check-issues.outputs.needs_triage > 0
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -17,11 +47,25 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+
       - name: Ensure label exists
         run: |
           gh label create "ready-to-start" --repo "${{ github.repository }}" || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get max items to label
+        id: config
+        run: |
+          # Use dispatch input if provided, otherwise use repo variable, default to 3
+          max="${{ github.inputs.max_items }}"
+          if [ -z "$max" ]; then
+            max="${{ vars.OPENCODE_TRIAGE_MAX_ITEMS }}"
+            [ -z "$max" ] && max=3
+          fi
+          echo "max_items=$max" >> $GITHUB_OUTPUT
+          echo "Using max_items: $max"
+
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
@@ -32,9 +76,9 @@ jobs:
           prompt: |
             Act as a Project Manager and Senior Developer:
             1. **Cleanup**: Close stale issues or duplicates. Link related issues.
-            2. **Sync**: Review TODO.md and create GitHub Issues for new tasks found.
-            3. **Backlog Refinement**: Scan open issues. If an issue has a clear
+            2. **Backlog Refinement**: Scan open issues. If an issue has a clear
                description and reproduction steps (for bugs) or clear requirements
                (for features), apply the 'ready-to-start' label.
-            4. **Prioritization**: Ensure only the most actionable and high-impact
-               items receive the 'ready-to-start' label (limit to 3-5 items).
+            3. **Prioritization**: Label only the MOST actionable and high-impact items.
+               IMPORTANT: Label at most 3 items per run (not 3-5 total). Select the top 3 
+               that are most complete, well-described, and ready to implement.
