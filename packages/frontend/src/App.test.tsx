@@ -13,6 +13,16 @@ describe("App", () => {
       showHistory: false,
       prompt: "",
       generatedCode: "// OpenSCAD code will appear here",
+      availableProviders: [
+        {
+          id: "gemini",
+          name: "Gemini",
+          models: ["gemini-2.5-flash"],
+          configured: true,
+        },
+      ],
+      provider: "gemini",
+      selectedModel: "gemini-2.5-flash",
     });
   });
 
