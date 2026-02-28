@@ -19,18 +19,25 @@ jobs:
       - name: Count issues needing triage
         id: count
         run: |
-          # Count open issues WITHOUT ready-to-start label
-          total=$(gh issue list --state open --json number 2>/dev/null | jq 'length // 0')
-          ready=$(gh issue list --state open --label "ready-to-start" --json number 2>/dev/null | jq 'length // 0')
+          echo "GH auth check: $(gh auth status --debug 2>&1 | head -5)"
 
-          # If no ready-to-start, all need triage. Otherwise, check remaining.
+          total_raw=$(gh issue list --state open --json number)
+          echo "Total raw output: $total_raw"
+          total=$(echo "$total_raw" | jq -r 'length // 0')
+
+          ready_raw=$(gh issue list --state open --label "ready-to-start" --json number)
+          echo "Ready raw output: $ready_raw"
+          ready=$(echo "$ready_raw" | jq -r 'length // 0')
+
+          echo "Total open: $total, Ready-to-start: $ready"
+
           if [ "$ready" -eq 0 ]; then
             needs=$total
           else
             needs=$((total - ready))
           fi
 
-          echo "Total open: $total, Ready-to-start: $ready, Need triage: $needs"
+          echo "Need triage: $needs"
           echo "needs_triage=$needs" >> $GITHUB_OUTPUT
 
   opencode:
