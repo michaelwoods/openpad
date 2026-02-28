@@ -1,4 +1,4 @@
-name: opencode
+name: OpenCode Mentions
 
 on:
   issue_comment:
@@ -7,7 +7,7 @@ on:
     types: [created]
 
 jobs:
-  opencode:
+  mentions:
     if: |
       contains(github.event.comment.body, ' /oc') ||
       startsWith(github.event.comment.body, '/oc') ||
@@ -30,4 +30,4 @@ jobs:
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
-          model: ${{ vars.OPENCODE_MODEL_PRIMARY }}
+          model: ${{ vars.OPENCODE_MODEL_PRIMARY || 'opencode/minimax-m2.5-free' }}

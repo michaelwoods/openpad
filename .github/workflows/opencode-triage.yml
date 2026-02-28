@@ -24,6 +24,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -e
           total=$(gh issue list --state open --json number | jq -r 'length // 0')
           ready=$(gh issue list --state open --label "ready-to-start" --json number | jq -r 'length // 0')
 
@@ -36,9 +37,9 @@ jobs:
           echo "Total open: $total, Ready-to-start: $ready, Need triage: $needs"
           echo "needs_triage=$needs" >> $GITHUB_OUTPUT
 
-  opencode:
+  triage:
     needs: check-issues
-    if: needs.check-issues.outputs.needs_triage > 0
+    if: ${{ needs.check-issues.outputs.needs_triage > 0 }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write

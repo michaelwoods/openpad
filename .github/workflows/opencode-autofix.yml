@@ -27,9 +27,9 @@ jobs:
             echo "has_ready=false" >> $GITHUB_OUTPUT
           fi
 
-  opencode:
+  autofix:
     needs: check-ready
-    if: needs.check-ready.outputs.has_ready_issues == 'true'
+    if: ${{ needs.check-ready.outputs.has_ready_issues == true }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
