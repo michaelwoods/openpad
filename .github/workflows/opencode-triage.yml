@@ -16,6 +16,9 @@ jobs:
     outputs:
       needs_triage: ${{ steps.count.outputs.needs_triage }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
       - name: Count issues needing triage
         id: count
         env:

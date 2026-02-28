@@ -11,6 +11,9 @@ jobs:
     outputs:
       has_ready_issues: ${{ steps.count.outputs.has_ready }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
       - name: Check for ready-to-start issues
         id: count
         env:
