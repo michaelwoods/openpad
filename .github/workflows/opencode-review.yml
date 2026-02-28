@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   review:
-    if: !github.event.pull_request.user.is_bot
+    if: "!github.actor_is_bot"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
