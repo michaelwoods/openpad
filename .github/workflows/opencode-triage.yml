@@ -36,7 +36,7 @@ jobs:
           echo "Total open: $total, Ready-to-start: $ready, Need triage: $needs"
           echo "needs_triage=$needs" >> $GITHUB_OUTPUT
 
-  opencode:
+  triage:
     needs: check-issues
     if: needs.check-issues.outputs.needs_triage > 0
     runs-on: ubuntu-latest
