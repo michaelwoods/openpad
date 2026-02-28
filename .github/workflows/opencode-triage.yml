@@ -18,12 +18,12 @@ jobs:
     steps:
       - name: Count issues needing triage
         id: count
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # Count open issues WITHOUT ready-to-start label
-          total=$(gh issue list --state open --json number 2>/dev/null | jq 'length // 0')
-          ready=$(gh issue list --state open --label "ready-to-start" --json number 2>/dev/null | jq 'length // 0')
+          total=$(gh issue list --state open --json number | jq -r 'length // 0')
+          ready=$(gh issue list --state open --label "ready-to-start" --json number | jq -r 'length // 0')
 
-          # If no ready-to-start, all need triage. Otherwise, check remaining.
           if [ "$ready" -eq 0 ]; then
             needs=$total
           else
