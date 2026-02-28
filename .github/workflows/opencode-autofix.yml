@@ -14,7 +14,7 @@ jobs:
       - name: Check for ready-to-start issues
         id: count
         run: |
-          count=$(gh issue list --state open --label "ready-to-start" --json number 2>/dev/null | jq '. | length')
+          count=$(gh issue list --state open --label "ready-to-start" --json number 2>/dev/null | jq 'length // 0')
           echo "Ready-to-start issues: $count"
           if [ "$count" -gt 0 ]; then
             echo "has_ready=true" >> $GITHUB_OUTPUT
