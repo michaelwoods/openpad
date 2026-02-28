@@ -18,18 +18,11 @@ jobs:
     steps:
       - name: Count issues needing triage
         id: count
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "GH auth check: $(gh auth status --debug 2>&1 | head -5)"
-
-          total_raw=$(gh issue list --state open --json number)
-          echo "Total raw output: $total_raw"
-          total=$(echo "$total_raw" | jq -r 'length // 0')
-
-          ready_raw=$(gh issue list --state open --label "ready-to-start" --json number)
-          echo "Ready raw output: $ready_raw"
-          ready=$(echo "$ready_raw" | jq -r 'length // 0')
-
-          echo "Total open: $total, Ready-to-start: $ready"
+          total=$(gh issue list --state open --json number | jq -r 'length // 0')
+          ready=$(gh issue list --state open --label "ready-to-start" --json number | jq -r 'length // 0')
 
           if [ "$ready" -eq 0 ]; then
             needs=$total
@@ -37,7 +30,7 @@ jobs:
             needs=$((total - ready))
           fi
 
-          echo "Need triage: $needs"
+          echo "Total open: $total, Ready-to-start: $ready, Need triage: $needs"
           echo "needs_triage=$needs" >> $GITHUB_OUTPUT
 
   opencode:

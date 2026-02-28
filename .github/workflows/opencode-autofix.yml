@@ -13,13 +13,10 @@ jobs:
     steps:
       - name: Check for ready-to-start issues
         id: count
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "GH auth check: $(gh auth status --debug 2>&1 | head -5)"
-
-          raw=$(gh issue list --state open --label "ready-to-start" --json number)
-          echo "Raw output: $raw"
-          count=$(echo "$raw" | jq -r 'length // 0')
-
+          count=$(gh issue list --state open --label "ready-to-start" --json number | jq -r 'length // 0')
           echo "Ready-to-start issues: $count"
           if [ "$count" -gt 0 ]; then
             echo "has_ready=true" >> $GITHUB_OUTPUT
