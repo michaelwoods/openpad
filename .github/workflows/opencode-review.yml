@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   review:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && !github.event.pull_request.user.is_bot
     runs-on: ubuntu-latest
     permissions:
       id-token: write
