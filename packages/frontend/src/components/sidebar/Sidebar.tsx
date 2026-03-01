@@ -132,7 +132,7 @@ export default function Sidebar() {
                   onClick={() => loadHistoryItem(item)}
                   className="w-full text-left p-2 rounded-md hover:bg-zinc-800/50 transition-colors"
                 >
-                  <p className="text-sm text-zinc-300 truncate">
+                  <p className="text-sm text-zinc-400 truncate">
                     {item.prompt}
                   </p>
                   <p className="text-xs text-zinc-500 mt-1">
