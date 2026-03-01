@@ -158,4 +158,48 @@ describe("ChatPanel", () => {
 
     expect(screen.getByText(/No AI providers available/i)).toBeInTheDocument();
   });
+
+  it("preserves model selection when switching to provider with same model", () => {
+    const providerWithSharedModel: Provider = {
+      id: "openrouter",
+      name: "OpenRouter",
+      models: ["openai/gpt-4o", "gemini-2.5-flash"],
+      configured: true,
+    };
+
+    useStore.setState({
+      availableProviders: [mockConfiguredProvider, providerWithSharedModel],
+      selectedModel: "gemini-2.5-flash",
+      provider: "gemini",
+    });
+
+    render(<ChatPanel />);
+
+    const providerSelect = screen.getAllByRole("combobox")[0];
+    fireEvent.change(providerSelect, { target: { value: "openrouter" } });
+
+    expect(useStore.getState().selectedModel).toBe("gemini-2.5-flash");
+  });
+
+  it("resets model when switching to provider without current model", () => {
+    const providerWithoutSharedModel: Provider = {
+      id: "openrouter",
+      name: "OpenRouter",
+      models: ["openai/gpt-4o"],
+      configured: true,
+    };
+
+    useStore.setState({
+      availableProviders: [mockConfiguredProvider, providerWithoutSharedModel],
+      selectedModel: "gemini-2.5-flash",
+      provider: "gemini",
+    });
+
+    render(<ChatPanel />);
+
+    const providerSelect = screen.getAllByRole("combobox")[0];
+    fireEvent.change(providerSelect, { target: { value: "openrouter" } });
+
+    expect(useStore.getState().selectedModel).toBe("openai/gpt-4o");
+  });
 });
