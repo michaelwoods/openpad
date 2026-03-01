@@ -25,25 +25,41 @@ export default async function (
     "/filename",
     {
       schema: {
+        tags: ["Utilities"],
+        description:
+          "Generate a descriptive, file-safe filename for an STL model based on the user's prompt",
+        summary: "Generate Filename for Model",
         body: {
           type: "object",
           required: ["prompt"],
           properties: {
-            prompt: { type: "string", minLength: 1, maxLength: 1000 },
+            prompt: {
+              type: "string",
+              minLength: 1,
+              maxLength: 1000,
+              description: "Natural language description of the 3D model",
+              examples: ["A 20mm cube with a hole through the center"],
+            },
           },
         },
         response: {
           200: {
             type: "object",
+            description: "Successfully generated filename",
             properties: {
-              filename: { type: "string" },
+              filename: {
+                type: "string",
+                description: "AI-generated filename ending with .stl",
+                examples: ["20mm_cube_with_hole.stl"],
+              },
             },
           },
           400: {
             type: "object",
+            description: "Invalid request body",
             properties: {
               error: { type: "string" },
-              details: {},
+              details: { type: "array" },
             },
           },
         },

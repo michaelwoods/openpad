@@ -30,30 +30,50 @@ export default async function (
     "/render",
     {
       schema: {
+        tags: ["Rendering"],
+        description:
+          "Render OpenSCAD code to a 3D model format (STL, AMF, or 3MF)",
+        summary: "Render OpenSCAD to 3D Model",
         body: {
           type: "object",
           required: ["code"],
           properties: {
-            code: { type: "string", minLength: 1 },
-            format: { type: "string", enum: ["stl", "amf", "3mf"] },
+            code: {
+              type: "string",
+              minLength: 1,
+              description: "OpenSCAD code to render",
+              examples: ["cube(20, center=true);"],
+            },
+            format: {
+              type: "string",
+              enum: ["stl", "amf", "3mf"],
+              default: "stl",
+              description: "Output format for the rendered model",
+            },
           },
         },
         response: {
           200: {
             type: "object",
+            description: "Successfully rendered 3D model",
             properties: {
-              stl: { type: "string" },
+              stl: {
+                type: "string",
+                description: "Base64-encoded 3D model data",
+              },
             },
           },
           400: {
             type: "object",
+            description: "Invalid request body",
             properties: {
               error: { type: "string" },
-              details: {},
+              details: { type: "array" },
             },
           },
           422: {
             type: "object",
+            description: "OpenSCAD failed to compile the provided code",
             properties: {
               error: { type: "string" },
               details: { type: "string" },

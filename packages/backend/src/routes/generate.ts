@@ -63,39 +63,80 @@ export default async function (
     "/generate",
     {
       schema: {
+        tags: ["Generation"],
+        description:
+          "Generate OpenSCAD 3D model code from a natural language prompt",
+        summary: "Generate OpenSCAD Code",
         body: {
           type: "object",
           required: ["prompt"],
           properties: {
-            prompt: { type: "string", minLength: 1, maxLength: 5000 },
+            prompt: {
+              type: "string",
+              minLength: 1,
+              maxLength: 5000,
+              description:
+                "Natural language description of the 3D model to generate",
+              examples: ["A 20mm cube with a 5mm hole through the center"],
+            },
             provider: {
               type: "string",
               enum: ["gemini", "ollama", "openai", "openrouter", "custom"],
               default: "gemini",
+              description: "AI provider to use for code generation",
             },
-            model: { type: "string" },
-            style: { type: "string", enum: ["Default", "Modular"] },
-            attachment: { type: "string" },
+            model: {
+              type: "string",
+              description: "Specific model to use (provider-dependent)",
+              examples: ["gemini-2.5-flash", "gpt-4o", "codellama"],
+            },
+            style: {
+              type: "string",
+              enum: ["Default", "Modular"],
+              description: "Code generation style",
+            },
+            attachment: {
+              type: "string",
+              description:
+                "Optional file content to include in the prompt (e.g., for reference)",
+            },
           },
         },
         response: {
           200: {
             type: "object",
+            description: "Successfully generated OpenSCAD code and STL",
             properties: {
-              code: { type: "string" },
-              stl: { type: "string" },
+              code: {
+                type: "string",
+                description: "Generated OpenSCAD code",
+                examples: ["cube(20, center=true);"],
+              },
+              stl: {
+                type: "string",
+                description: "Base64-encoded STL binary data",
+              },
+              generationInfo: {
+                type: "object",
+                description: "Additional generation metadata",
+                properties: {
+                  finishReason: { type: "string" },
+                  safetyRatings: { type: "array" },
+                },
+              },
             },
-            additionalProperties: true,
           },
           400: {
             type: "object",
+            description: "Invalid request body",
             properties: {
               error: { type: "string" },
-              details: {},
+              details: { type: "array" },
             },
           },
           422: {
             type: "object",
+            description: "OpenSCAD failed to compile the generated code",
             properties: {
               error: { type: "string" },
               code: { type: ["string", "null"] },
