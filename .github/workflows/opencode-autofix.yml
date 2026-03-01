@@ -9,7 +9,7 @@ jobs:
   check-ready:
     runs-on: ubuntu-latest
     outputs:
-      has_ready_issues: ${{ steps.count.outputs.has_ready }}
+      count: ${{ steps.count.outputs.count }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -21,15 +21,11 @@ jobs:
         run: |
           count=$(gh issue list --state open --label "ready-to-start" --json number | jq -r 'length // 0')
           echo "Ready-to-start issues: $count"
-          if [ "$count" -gt 0 ]; then
-            echo "has_ready=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_ready=false" >> $GITHUB_OUTPUT
-          fi
+          echo "count=$count" >> $GITHUB_OUTPUT
 
   autofix:
     needs: check-ready
-    if: ${{ needs.check-ready.outputs.has_ready_issues == true }}
+    if: ${{ needs.check-ready.outputs.count != '' && needs.check-ready.outputs.count != '0' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
