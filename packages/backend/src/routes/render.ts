@@ -30,6 +30,10 @@ export default async function (
     "/render",
     {
       schema: {
+        description:
+          "Render OpenSCAD code to 3D model format. Compiles the provided OpenSCAD source code and exports to STL, AMF, or 3MF format.",
+        summary: "Render OpenSCAD Code",
+        tags: ["Rendering"],
         body: {
           type: "object",
           required: ["code"],

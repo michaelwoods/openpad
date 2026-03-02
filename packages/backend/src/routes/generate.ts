@@ -63,44 +63,86 @@ export default async function (
     "/generate",
     {
       schema: {
+        description:
+          "Generate OpenSCAD 3D model code from a natural language prompt. Uses AI to convert text descriptions into valid OpenSCAD code, then renders it to STL format.",
+        summary: "Generate 3D Model from Prompt",
+        tags: ["Generation"],
         body: {
           type: "object",
           required: ["prompt"],
           properties: {
-            prompt: { type: "string", minLength: 1, maxLength: 5000 },
+            prompt: {
+              type: "string",
+              minLength: 1,
+              maxLength: 5000,
+              description:
+                "Natural language description of the 3D model to generate",
+            },
             provider: {
               type: "string",
               enum: ["gemini", "ollama", "openai", "openrouter", "custom"],
               default: "gemini",
+              description: "AI provider to use for code generation",
             },
-            model: { type: "string" },
-            style: { type: "string", enum: ["Default", "Modular"] },
-            attachment: { type: "string" },
+            model: {
+              type: "string",
+              description:
+                "Specific model to use (provider-dependent). If not specified, uses provider default.",
+            },
+            style: {
+              type: "string",
+              enum: ["Default", "Modular"],
+              description:
+                "Generation style: 'Default' for simple objects, 'Modular' for complex multi-part designs",
+            },
+            attachment: {
+              type: "string",
+              description: "Optional file content to include as context",
+            },
           },
         },
         response: {
           200: {
             type: "object",
+            description:
+              "Successful generation - returns OpenSCAD code and rendered STL",
             properties: {
-              code: { type: "string" },
-              stl: { type: "string" },
+              code: {
+                type: "string",
+                description: "Generated OpenSCAD source code",
+              },
+              stl: {
+                type: "string",
+                description: "Base64-encoded STL binary data",
+              },
             },
             additionalProperties: true,
           },
           400: {
             type: "object",
+            description: "Bad Request - invalid request parameters",
             properties: {
-              error: { type: "string" },
-              details: {},
+              error: { type: "string", description: "Error type" },
+              details: { description: "Validation error details" },
             },
           },
           422: {
             type: "object",
+            description: "Unprocessable Entity - OpenSCAD compilation failed",
             properties: {
-              error: { type: "string" },
-              code: { type: ["string", "null"] },
-              stl: { type: "null" },
-              details: { type: "string" },
+              error: { type: "string", description: "Error description" },
+              code: {
+                type: ["string", "null"],
+                description: "The generated code that failed to compile",
+              },
+              stl: {
+                type: "null",
+                description: "No STL was generated due to compilation failure",
+              },
+              details: {
+                type: "string",
+                description: "OpenSCAD error message",
+              },
             },
           },
         },

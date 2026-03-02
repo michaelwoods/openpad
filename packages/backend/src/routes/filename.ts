@@ -25,6 +25,10 @@ export default async function (
     "/filename",
     {
       schema: {
+        description:
+          "Generate a descriptive, file-safe filename for an STL model based on a natural language prompt.",
+        summary: "Generate STL Filename",
+        tags: ["Utilities"],
         body: {
           type: "object",
           required: ["prompt"],

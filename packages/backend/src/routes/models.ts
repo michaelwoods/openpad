@@ -29,6 +29,10 @@ export default async function (
     "/models",
     {
       schema: {
+        description:
+          "List all available AI models from configured providers. Returns provider status and available models.",
+        summary: "List Available AI Models",
+        tags: ["Generation"],
         response: {
           200: {
             type: "object",
