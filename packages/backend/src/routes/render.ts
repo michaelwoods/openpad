@@ -30,33 +30,77 @@ export default async function (
     "/render",
     {
       schema: {
+        description:
+          "Render OpenSCAD code to 3D model formats (STL, AMF, 3MF). Useful for re-rendering existing code or converting to different formats.",
+        summary: "Render OpenSCAD code to 3D model",
         body: {
           type: "object",
+          description: "Request body for rendering",
           required: ["code"],
           properties: {
-            code: { type: "string", minLength: 1 },
-            format: { type: "string", enum: ["stl", "amf", "3mf"] },
+            code: {
+              type: "string",
+              minLength: 1,
+              description: "OpenSCAD code to render",
+              example: "cube(20, center=true);",
+            },
+            format: {
+              type: "string",
+              enum: ["stl", "amf", "3mf"],
+              description:
+                "Output format for the rendered model. Defaults to STL if not specified.",
+              example: "stl",
+            },
           },
         },
         response: {
           200: {
+            description:
+              "Successful rendering - returns base64-encoded model data",
             type: "object",
             properties: {
-              stl: { type: "string" },
+              stl: {
+                type: "string",
+                description: "Base64-encoded 3D model data",
+                example: "c29saWQgc3R1ZmYgc3RyaW5n...",
+              },
             },
           },
           400: {
+            description: "Bad Request - Invalid request parameters",
             type: "object",
             properties: {
-              error: { type: "string" },
-              details: {},
+              error: { type: "string", example: "Invalid request body" },
+              details: {
+                type: "array",
+                description: "Validation error details",
+                example: [{ path: "code", message: "Required" }],
+              },
             },
           },
           422: {
+            description:
+              "Unprocessable Entity - OpenSCAD failed to compile the provided code",
             type: "object",
             properties: {
-              error: { type: "string" },
-              details: { type: "string" },
+              error: {
+                type: "string",
+                example: "OpenSCAD failed to compile the provided code.",
+              },
+              details: {
+                type: "string",
+                description: "OpenSCAD error message",
+              },
+            },
+          },
+          500: {
+            description: "Internal Server Error",
+            type: "object",
+            properties: {
+              error: {
+                type: "string",
+                example: "An internal server error occurred.",
+              },
             },
           },
         },

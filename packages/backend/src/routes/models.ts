@@ -29,21 +29,54 @@ export default async function (
     "/models",
     {
       schema: {
+        description:
+          "Retrieve available AI models from all configured providers. Returns provider information including available models, configuration status, and endpoints.",
+        summary: "List available AI models",
         response: {
           200: {
+            description:
+              "List of configured AI providers and their available models",
             type: "object",
             properties: {
               providers: {
                 type: "array",
+                description: "Array of AI providers",
                 items: {
                   type: "object",
                   properties: {
-                    id: { type: "string" },
-                    name: { type: "string" },
-                    models: { type: "array", items: { type: "string" } },
-                    configured: { type: "boolean" },
-                    baseUrl: { type: "string" },
-                    headers: { type: "object" },
+                    id: {
+                      type: "string",
+                      description: "Provider identifier",
+                      example: "gemini",
+                    },
+                    name: {
+                      type: "string",
+                      description: "Display name of the provider",
+                      example: "Google Gemini",
+                    },
+                    models: {
+                      type: "array",
+                      description: "List of available models for this provider",
+                      items: { type: "string" },
+                      example: ["gemini-2.5-flash", "gemini-2.5-pro"],
+                    },
+                    configured: {
+                      type: "boolean",
+                      description:
+                        "Whether the provider is properly configured with API keys",
+                      example: true,
+                    },
+                    baseUrl: {
+                      type: "string",
+                      description: "API endpoint base URL for this provider",
+                      example: "https://api.openai.com/v1",
+                    },
+                    headers: {
+                      type: "object",
+                      description:
+                        "Additional headers required for this provider (e.g., for OpenRouter)",
+                      example: { "HTTP-Referer": "http://localhost:5173" },
+                    },
                   },
                 },
               },

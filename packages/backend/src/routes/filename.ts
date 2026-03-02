@@ -25,25 +25,58 @@ export default async function (
     "/filename",
     {
       schema: {
+        description:
+          "Generate a descriptive, file-safe filename for a 3D model based on a natural language prompt. Uses AI to create meaningful filenames.",
+        summary: "Generate descriptive filename for 3D model",
         body: {
           type: "object",
+          description: "Request body for filename generation",
           required: ["prompt"],
           properties: {
-            prompt: { type: "string", minLength: 1, maxLength: 1000 },
+            prompt: {
+              type: "string",
+              minLength: 1,
+              maxLength: 1000,
+              description:
+                "Natural language description of the model (same prompt used for generation)",
+              example:
+                "A 20mm cube with a 10mm cylindrical hole through the center",
+            },
           },
         },
         response: {
           200: {
+            description: "Successfully generated filename",
             type: "object",
             properties: {
-              filename: { type: "string" },
+              filename: {
+                type: "string",
+                description: "AI-generated filename ending with .stl",
+                example: "cube_with_central_hole.stl",
+              },
             },
           },
           400: {
+            description: "Bad Request - Invalid request parameters",
             type: "object",
             properties: {
-              error: { type: "string" },
-              details: {},
+              error: { type: "string", example: "Invalid request body" },
+              details: {
+                type: "array",
+                description: "Validation error details",
+                example: [{ path: "prompt", message: "Required" }],
+              },
+            },
+          },
+          500: {
+            description:
+              "Internal Server Error - AI model failed to generate filename",
+            type: "object",
+            properties: {
+              error: {
+                type: "string",
+                example: "Failed to generate filename from AI model",
+              },
             },
           },
         },
