@@ -29,21 +29,49 @@ export default async function (
     "/models",
     {
       schema: {
+        tags: ["Models"],
+        description: "List available AI models from all configured providers",
+        summary: "List Available AI Models",
         response: {
           200: {
             type: "object",
+            description: "List of available AI providers and their models",
             properties: {
               providers: {
                 type: "array",
+                description: "Array of configured AI providers",
                 items: {
                   type: "object",
                   properties: {
-                    id: { type: "string" },
-                    name: { type: "string" },
-                    models: { type: "array", items: { type: "string" } },
-                    configured: { type: "boolean" },
-                    baseUrl: { type: "string" },
-                    headers: { type: "object" },
+                    id: {
+                      type: "string",
+                      description: "Provider identifier",
+                      examples: ["gemini", "openai", "ollama"],
+                    },
+                    name: {
+                      type: "string",
+                      description: "Display name of the provider",
+                      examples: ["Google Gemini", "OpenAI", "Ollama (Local)"],
+                    },
+                    models: {
+                      type: "array",
+                      description: "Available models for this provider",
+                      items: { type: "string" },
+                    },
+                    configured: {
+                      type: "boolean",
+                      description:
+                        "Whether the provider is properly configured with API keys",
+                    },
+                    baseUrl: {
+                      type: "string",
+                      description: "Base URL for the provider's API",
+                    },
+                    headers: {
+                      type: "object",
+                      description:
+                        "Additional headers required for the provider",
+                    },
                   },
                 },
               },
