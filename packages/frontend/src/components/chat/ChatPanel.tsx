@@ -33,7 +33,9 @@ export default function ChatPanel() {
     setProvider(newProviderId);
     const newProvider = availableProviders.find((p) => p.id === newProviderId);
     if (newProvider && newProvider.models.length > 0) {
-      setSelectedModel(newProvider.models[0]);
+      if (!newProvider.models.includes(selectedModel)) {
+        setSelectedModel(newProvider.models[0]);
+      }
     }
   };
 
