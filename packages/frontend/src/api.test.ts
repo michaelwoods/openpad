@@ -45,15 +45,12 @@ describe("API Service", () => {
     it("throws error on failure", async () => {
       server.use(
         http.post("/api/generate", () => {
-          return HttpResponse.json(
-            { details: "Server Error" },
-            { status: 500 },
-          );
+          return HttpResponse.json({ details: "Bad Request" }, { status: 400 });
         }),
       );
 
       await expect(generateCode("prompt", "model", "style")).rejects.toThrow(
-        "Server Error",
+        "Bad Request",
       );
     });
   });
