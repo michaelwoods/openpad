@@ -1,6 +1,28 @@
 import toast from "react-hot-toast";
 import type { ChatMessage } from "./store";
 
+export interface OpenSCADError {
+  line?: number;
+  column?: number;
+  message: string;
+  file?: string;
+}
+
+interface GenerateResponse {
+  code: string;
+  stl: string;
+  generationInfo?: Record<string, unknown>;
+  errors?: OpenSCADError[];
+}
+
+interface ErrorResponse {
+  error: string;
+  code: string | null;
+  stl: null;
+  details: string;
+  errors?: OpenSCADError[];
+}
+
 export const generateCode = async (
   prompt: string,
   model: string,
@@ -44,11 +66,17 @@ export const generateCode = async (
     body: JSON.stringify(body),
   });
 
-  const data = await response.json();
+  const data: GenerateResponse | ErrorResponse = await response.json();
   if (!response.ok) {
     const errorDetails =
       data.details || `HTTP error! status: ${response.status}`;
-    throw new Error(errorDetails);
+    const error = new Error(errorDetails) as Error & {
+      errors?: OpenSCADError[];
+    };
+    if (data.errors) {
+      error.errors = data.errors;
+    }
+    throw error;
   }
   return data;
 };
@@ -62,11 +90,17 @@ export const renderModel = async (code: string) => {
     body: JSON.stringify({ code }),
   });
 
-  const result = await response.json();
+  const result = (await response.json()) as GenerateResponse | ErrorResponse;
   if (!response.ok) {
     const errorDetails =
       result.details || `HTTP error! status: ${response.status}`;
-    throw new Error(errorDetails);
+    const error = new Error(errorDetails) as Error & {
+      errors?: OpenSCADError[];
+    };
+    if (result.errors) {
+      error.errors = result.errors;
+    }
+    throw error;
   }
   return result;
 };
@@ -131,6 +165,7 @@ export const handleGenerate = async (
   setStlData: (stlData: string | null) => void,
   setGeneratedCode: (generatedCode: string) => void,
   setGenerationInfo: (generationInfo: Record<string, unknown> | null) => void,
+  setErrors?: (errors: OpenSCADError[]) => void,
   editedCode?: string,
   style?: string,
   attachment?: string | null,
@@ -140,23 +175,37 @@ export const handleGenerate = async (
   setIsLoading(true);
   setStlData(null);
   setGenerationInfo(null);
+  if (setErrors) {
+    setErrors([]);
+  }
 
   const promise = (async () => {
-    const { code, generationInfo } = editedCode
-      ? { code: editedCode, generationInfo: null }
-      : await generateCode(
-          prompt,
-          selectedModel,
-          style || "Default",
-          attachment,
-          provider,
-          chatHistory,
-        );
+    try {
+      const { code, generationInfo } = editedCode
+        ? { code: editedCode, generationInfo: null }
+        : await generateCode(
+            prompt,
+            selectedModel,
+            style || "Default",
+            attachment,
+            provider,
+            chatHistory,
+          );
 
-    setGeneratedCode(code);
-    const { stl } = await renderModel(code);
+      setGeneratedCode(code);
+      const result = await renderModel(code);
 
-    return { code, stl, generationInfo };
+      if (setErrors && result.errors) {
+        setErrors(result.errors);
+      }
+
+      return { code, stl: result.stl, generationInfo };
+    } catch (err: unknown) {
+      if (setErrors && (err as Error & { errors?: OpenSCADError[] }).errors) {
+        setErrors((err as Error & { errors?: OpenSCADError[] }).errors!);
+      }
+      throw err;
+    }
   })();
 
   await toast.promise(promise, {
