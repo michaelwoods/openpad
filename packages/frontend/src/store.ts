@@ -12,11 +12,19 @@ export interface HistoryItem {
   attachment: string | null;
 }
 
+export interface OpenSCADError {
+  line?: number;
+  column?: number;
+  message: string;
+  file?: string;
+}
+
 interface AppState {
   prompt: string;
   generatedCode: string;
   stlData: string | null;
   generationInfo: Record<string, unknown> | null;
+  errors: OpenSCADError[];
   isLoading: boolean;
   showAbout: boolean;
   showHistory: boolean;
@@ -36,6 +44,7 @@ interface AppState {
   setGeneratedCode: (generatedCode: string) => void;
   setStlData: (stlData: string | null) => void;
   setGenerationInfo: (generationInfo: Record<string, unknown> | null) => void;
+  setErrors: (errors: OpenSCADError[]) => void;
   setIsLoading: (isLoading: boolean) => void;
   setShowAbout: (showAbout: boolean) => void;
   setShowHistory: (showHistory: boolean) => void;
@@ -79,6 +88,7 @@ export const useStore = create<AppState>()(
       generatedCode: "// OpenSCAD code will appear here",
       stlData: null,
       generationInfo: null,
+      errors: [],
       isLoading: false,
       showAbout: false,
       showHistory: false,
@@ -98,6 +108,7 @@ export const useStore = create<AppState>()(
       setGeneratedCode: (generatedCode) => set({ generatedCode }),
       setStlData: (stlData) => set({ stlData }),
       setGenerationInfo: (generationInfo) => set({ generationInfo }),
+      setErrors: (errors) => set({ errors }),
       setIsLoading: (isLoading) => set({ isLoading }),
       setShowAbout: (showAbout) => set({ showAbout }),
       setShowHistory: (showHistory) => set({ showHistory }),
