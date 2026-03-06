@@ -12,6 +12,7 @@ on:
 
 jobs:
   check-issues:
+    if: ${{ vars.OPENCODE_AUTOJOBS_ENABLED != 'false' }}
     runs-on: ubuntu-latest
     outputs:
       needs_triage: ${{ steps.count.outputs.needs_triage }}
