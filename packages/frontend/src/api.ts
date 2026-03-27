@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import type { ChatMessage } from "./store";
+import { withRetry, formatErrorMessage, isOnline } from "./utils/errorHandling";
 
 export const generateCode = async (
   prompt: string,
@@ -36,38 +37,52 @@ export const generateCode = async (
     body.attachment = attachment;
   }
 
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
+  const responseData = await withRetry(async () => {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      const error = new Error(
+        errorData.details || `HTTP error! status: ${res.status}`,
+      );
+      (error as { status?: number }).status = res.status;
+      throw error;
+    }
+
+    return res.json();
   });
 
-  const data = await response.json();
-  if (!response.ok) {
-    const errorDetails =
-      data.details || `HTTP error! status: ${response.status}`;
-    throw new Error(errorDetails);
-  }
-  return data;
+  return responseData;
 };
 
 export const renderModel = async (code: string) => {
-  const response = await fetch("/api/render", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ code }),
+  const result = await withRetry(async () => {
+    const res = await fetch("/api/render", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      const error = new Error(
+        errorData.details || `HTTP error! status: ${res.status}`,
+      );
+      (error as { status?: number }).status = res.status;
+      throw error;
+    }
+
+    return res.json();
   });
 
-  const result = await response.json();
-  if (!response.ok) {
-    const errorDetails =
-      result.details || `HTTP error! status: ${response.status}`;
-    throw new Error(errorDetails);
-  }
   return result;
 };
 
@@ -176,7 +191,10 @@ export const handleGenerate = async (
     },
     error: (err) => {
       setIsLoading(false);
-      return `Error: ${err.message}`;
+      if (!isOnline()) {
+        return "You're offline. Please check your internet connection and try again.";
+      }
+      return formatErrorMessage(err);
     },
   });
 };

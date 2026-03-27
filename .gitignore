@@ -4,3 +4,5 @@ coverage/
 dist/
 packages/eval_output/
 .continue/
+playwright-report/
+test-results/
