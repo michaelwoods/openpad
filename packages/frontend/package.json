@@ -10,6 +10,11 @@
     "preview": "vite preview",
     "test": "vitest --run",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:install": "playwright install --with-deps chromium firefox webkit",
     "clear": "vitest clear",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
