@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "test": "vitest --run",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "clear": "vitest clear",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -57,7 +59,7 @@
     "@storybook/addon-a11y": "^10.2.14",
     "@storybook/addon-docs": "^10.2.14",
     "@storybook/addon-onboarding": "^10.2.14",
-    "playwright": "^1.58.2",
+    "playwright": "^1.50.1",
     "@vitest/browser-playwright": "^4.0.18"
   }
 }
