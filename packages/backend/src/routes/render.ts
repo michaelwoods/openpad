@@ -10,6 +10,7 @@ import { writeFile, readFile, mkdtemp, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { promisify } from "util";
+import { parseOpenSCADErrors } from "./generate";
 
 const execFileAsync = promisify(execFile);
 
@@ -77,6 +78,18 @@ export default async function (
             properties: {
               error: { type: "string" },
               details: { type: "string" },
+              errors: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    line: { type: "number" },
+                    column: { type: "number" },
+                    message: { type: "string" },
+                    file: { type: "string" },
+                  },
+                },
+              },
             },
           },
         },
@@ -111,9 +124,12 @@ export default async function (
             scadPath,
           ]);
         } catch (openscadError: any) {
+          const stderr = openscadError.stderr || openscadError.message;
+          const parsedErrors = parseOpenSCADErrors(stderr);
           return reply.status(422).send({
             error: "OpenSCAD failed to compile the provided code.",
-            details: openscadError.stderr || openscadError.message,
+            details: stderr,
+            errors: parsedErrors,
           });
         }
 

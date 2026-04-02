@@ -3,7 +3,7 @@ import { useStore } from "./store";
 import CodeEditor from "./components/editor/CodeEditor";
 
 const Editor: React.FC = () => {
-  const { generatedCode, generationInfo, isLoading, setGeneratedCode } =
+  const { generatedCode, generationInfo, errors, isLoading, setGeneratedCode } =
     useStore();
 
   const [editedCode, setEditedCode] = useState<string | null>(null);
@@ -27,7 +27,14 @@ const Editor: React.FC = () => {
   return (
     <div className="h-full flex flex-col p-4 overflow-y-auto">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-200">Code Editor</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-zinc-200">Code Editor</h2>
+          {errors.length > 0 && (
+            <span className="px-2 py-0.5 text-xs bg-red-600/20 text-red-400 rounded-full">
+              {errors.length} error{errors.length > 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
         {editedCode && (
           <button
             onClick={handleSave}
@@ -44,6 +51,7 @@ const Editor: React.FC = () => {
             code={editedCode ?? generatedCode}
             onChange={handleEditorChange}
             isReadOnly={isLoading}
+            errors={errors}
           />
         </div>
       </div>

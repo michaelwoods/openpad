@@ -55,6 +55,44 @@ export const extractCode = (text: string): string => {
   return cleanText;
 };
 
+export interface OpenSCADError {
+  line?: number;
+  column?: number;
+  message: string;
+  file?: string;
+}
+
+export function parseOpenSCADErrors(stderr: string): OpenSCADError[] {
+  const errors: OpenSCADError[] = [];
+  const lines = stderr.split("\n");
+
+  const errorLineRegex =
+    /ERROR:\s*(.+?)\s*in file\s*['"`](.+?)['"`],?\s*line\s*(\d+)(?::,\s*col\s*(\d+))?/i;
+  const simpleErrorRegex = /ERROR:\s*(.+)/i;
+
+  for (const line of lines) {
+    const errorMatch = line.match(errorLineRegex);
+    if (errorMatch) {
+      errors.push({
+        message: errorMatch[1].trim(),
+        file: errorMatch[2].trim(),
+        line: parseInt(errorMatch[3], 10),
+        column: errorMatch[4] ? parseInt(errorMatch[4], 10) : undefined,
+      });
+      continue;
+    }
+
+    const simpleMatch = line.match(simpleErrorRegex);
+    if (simpleMatch) {
+      errors.push({
+        message: simpleMatch[1].trim(),
+      });
+    }
+  }
+
+  return errors;
+}
+
 export default async function (
   fastify: FastifyInstance,
   options: FastifyPluginOptions,
@@ -142,6 +180,18 @@ export default async function (
               code: { type: ["string", "null"] },
               stl: { type: "null" },
               details: { type: "string" },
+              errors: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    line: { type: "number" },
+                    column: { type: "number" },
+                    message: { type: "string" },
+                    file: { type: "string" },
+                  },
+                },
+              },
             },
           },
         },
@@ -302,12 +352,14 @@ ${attachment}
           await execFileAsync("openscad", ["-o", stlPath, scadPath]);
         } catch (openscadError: any) {
           fastify.log.error(openscadError, "OpenSCAD execution failed");
-          // Send a specific error response if OpenSCAD fails (e.g., due to bad code)
+          const stderr = openscadError.stderr || openscadError.message;
+          const parsedErrors = parseOpenSCADErrors(stderr);
           return reply.status(422).send({
             error: "OpenSCAD failed to compile the generated code.",
-            code, // Send the faulty code back for debugging
+            code,
             stl: null,
-            details: openscadError.stderr || openscadError.message,
+            details: stderr,
+            errors: parsedErrors,
           });
         }
 

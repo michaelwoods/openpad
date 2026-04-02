@@ -1,19 +1,23 @@
-import { useState, useCallback } from "react";
-import MonacoEditor from "@monaco-editor/react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import MonacoEditor, { type Monaco } from "@monaco-editor/react";
 import { EditorToolbar } from "./EditorToolbar";
+import type { OpenSCADError } from "../../../store";
 
 interface CodeEditorProps {
   code: string;
   onChange?: (value: string) => void;
   isReadOnly?: boolean;
+  errors?: OpenSCADError[];
 }
 
 export default function CodeEditor({
   code,
   onChange,
   isReadOnly = false,
+  errors = [],
 }: CodeEditorProps) {
   const [copied, setCopied] = useState(false);
+  const monacoRef = useRef<Monaco | null>(null);
 
   const handleCopy = useCallback(() => {
     if (!code) return;
@@ -28,6 +32,27 @@ export default function CodeEditor({
     }
   };
 
+  const handleEditorMount = (editor: unknown, monaco: Monaco) => {
+    monacoRef.current = monaco;
+  };
+
+  useEffect(() => {
+    if (monacoRef.current) {
+      const model = monacoRef.current.editor.getModels()[0];
+      if (model) {
+        const markers = errors.map((error) => ({
+          severity: monacoRef.current!.MarkerSeverity.Error,
+          message: error.message,
+          startLineNumber: error.line || 1,
+          startColumn: error.column || 1,
+          endLineNumber: error.line || 1,
+          endColumn: (error.column || 1) + 10,
+        }));
+        monacoRef.current.editor.setModelMarkers(model, "openscad", markers);
+      }
+    }
+  }, [errors]);
+
   return (
     <div className="relative flex flex-col h-full">
       <EditorToolbar onCopy={handleCopy} isReadOnly={isReadOnly} />
@@ -38,6 +63,7 @@ export default function CodeEditor({
           defaultLanguage="cpp"
           value={code}
           onChange={handleEditorChange}
+          onMount={handleEditorMount}
           theme="vs-dark"
           options={{
             readOnly: isReadOnly,
